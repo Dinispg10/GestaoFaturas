@@ -89,7 +89,7 @@ export const LoginPage: React.FC = () => {
           align-items: center;
           justify-content: center;
           min-height: 100vh;
-          background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+          background: linear-gradient(135deg, #4a3f83 0%, #2d9f6d 100%);
           padding: 20px;
         }
 
@@ -128,7 +128,7 @@ export const LoginPage: React.FC = () => {
         .login-header h1 {
           font-size: 24px;
           margin-bottom: 8px;
-          color: #0066cc;
+          color: #4a3f83;
         }
 
         .login-header p {

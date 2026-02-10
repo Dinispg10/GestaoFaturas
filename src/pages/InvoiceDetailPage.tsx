@@ -27,19 +27,23 @@ export const InvoiceDetailPage: React.FC = () => {
     if (!id) return;
 
     try {
+      console.log('[InvoiceDetailPage] Loading invoice:', id);
       setLoading(true);
       const invoiceData = await invoiceService.getInvoice(id);
+      console.log('[InvoiceDetailPage] Got invoice:', !!invoiceData);
       if (invoiceData) {
         setInvoice(invoiceData);
         await supplierService.getSupplier(invoiceData.supplierId);
       }
 
       const eventsData = await invoiceService.getInvoiceEvents(id);
+      console.log('[InvoiceDetailPage] Got events:', eventsData.length);
       setEvents(eventsData);
     } catch (error) {
-      console.error('Erro ao carregar fatura:', error);
+      console.error('[InvoiceDetailPage] Error loading:', error);
     } finally {
       setLoading(false);
+      console.log('[InvoiceDetailPage] setLoading(false)');
     }
   };
 

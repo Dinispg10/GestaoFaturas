@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { User } from '../types';
 
@@ -13,121 +14,140 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const mapUser = (userData: {
+  id: string;
+  name: string;
+  email: string;
+  role: User['role'];
+  active: boolean;
+}): User => ({
+  id: userData.id,
+  name: userData.name,
+  email: userData.email,
+  role: userData.role,
+  active: userData.active,
+});
+
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const syncUserProfile = async (authUser: SupabaseUser | null) => {
+    if (!authUser) {
+      setUser(null);
+      setError(null);
+      return;
+    }
+
+    try {
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', authUser.id)
+        .maybeSingle();
+
+      if (userError) {
+        throw userError;
+      }
+
+      if (!userData) {
+        const name = authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User';
+
+        const { data: inserted, error: insertError } = await supabase
+          .from('users')
+          .insert({
+            id: authUser.id,
+            email: authUser.email,
+            name,
+            role: 'staff',
+            active: true,
+          })
+          .select('*')
+          .single();
+
+        if (insertError || !inserted) {
+          throw insertError || new Error('Falha ao provisionar conta');
+        }
+
+        setUser(mapUser(inserted));
+      } else {
+        setUser(mapUser(userData));
+      }
+
+      setError(null);
+    } catch (err) {
+      console.error('[AuthContext] Erro ao sincronizar perfil:', err);
+      setUser(null);
+      setError('Erro ao carregar utilizador');
+    }
+  };
+
   useEffect(() => {
-    console.log('[AuthContext] Init: setting up auth listener');
     let mounted = true;
 
-    // Aggressive timeout: force loading to false after 3 seconds no matter what
-    const forceTimeout = setTimeout(() => {
-      if (mounted) {
-        console.error('[AuthContext] TIMEOUT: Forcing loading=false after 3s');
-        setLoading(false);
-      }
-    }, 3000);
+   const initializeAuth = async () => {
+      try {
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
 
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event: any, session: any) => {
-        console.log(`[AuthContext] onAuthStateChange: event=${event}, hasSession=${!!session}`);
+        if (sessionError) {
+          throw sessionError;
+        }
 
-        if (!mounted) return;
-
-        try {
-          clearTimeout(forceTimeout);
-
-          if (session?.user && event !== 'SIGNED_OUT') {
-            console.log(`[AuthContext] User logged in: ${session.user.email}`);
-            
-            // Try to get existing user row
-            const { data: userData, error: userError } = await supabase
-              .from('users')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-
-            console.log(`[AuthContext] Fetch user result: error=${userError?.message || 'none'}, data=${!!userData}`);
-
-            if (!userData) {
-              console.log(`[AuthContext] No user row, attempting insert...`);
-              const name = session.user.user_metadata?.full_name || 'User';
-              const { data: inserted, error: insertErr } = await supabase
-                .from('users')
-                .insert({
-                  id: session.user.id,
-                  email: session.user.email,
-                  name,
-                  role: 'staff',
-                  active: true,
-                })
-                .select()
-                .single();
-
-              console.log(`[AuthContext] Insert result: error=${insertErr?.message || 'none'}, inserted=${!!inserted}`);
-
-              if (inserted) {
-                setUser({
-                  id: inserted.id,
-                  name: inserted.name,
-                  email: inserted.email,
-                  role: inserted.role,
-                  active: inserted.active,
-                });
-              } else {
-                setError('Erro ao provisionar conta');
-              }
-            } else {
-              setUser({
-                id: userData.id,
-                name: userData.name,
-                email: userData.email,
-                role: userData.role,
-                active: userData.active,
-              });
-            }
-            setError(null);
-          } else {
-            console.log('[AuthContext] No session or signed out');
-            setUser(null);
-            setError(null);
-          }
-        } catch (err) {
-          console.error('[AuthContext] Error:', err);
-          setError('Erro ao carregar');
-        } finally {
-          if (mounted) {
-            setLoading(false);
-            console.log('[AuthContext] Set loading=false');
-          }
+        if (mounted) {
+          await syncUserProfile(session?.user ?? null);
+        }
+      } catch (err) {
+        console.error('[AuthContext] Erro ao inicializar sessão:', err);
+        if (mounted) {
+          setUser(null);
+          setError('Erro ao inicializar sessão');
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
         }
       }
-    );
+     };
+
+    initializeAuth();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event: string, session: Session | null) => {
+      if (!mounted) return;
+
+      setLoading(true);
+      // Evita deadlocks: não fazer await direto dentro do callback de auth
+      void (async () => {
+        await syncUserProfile(session?.user ?? null);
+        if (mounted) {
+          setLoading(false);
+        }
+      })();
+    });
 
     return () => {
-      console.log('[AuthContext] Cleanup');
       mounted = false;
-      clearTimeout(forceTimeout);
       subscription?.unsubscribe();
     };
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log(`[AuthContext] signIn: ${email}`);
       setLoading(true);
       setError(null);
 
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
+       const { error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      console.log(`[AuthContext] signInWithPassword result: error=${authError?.message || 'none'}, hasSession=${!!data.session}`);
-
+     
       if (authError) {
         const msg = authError.message || 'Email ou password incorretos';
         setError(msg);
@@ -135,16 +155,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error(msg);
       }
 
-      if (!data.session?.user) {
-        setError('Falha no login');
-        setLoading(false);
-        throw new Error('No session');
-      }
-
-      // Don't set loading to false here — the onAuthStateChange listener will do it
-      console.log('[AuthContext] Waiting for onAuthStateChange to complete auth...');
+  
     } catch (err) {
-      console.error('[AuthContext] signIn error:', err);
       setLoading(false);
       throw err;
     }
@@ -153,8 +165,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) throw signOutError;
       setUser(null);
       setError(null);
     } catch (err) {

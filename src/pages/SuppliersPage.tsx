@@ -23,13 +23,16 @@ export const SuppliersPage: React.FC = () => {
 
   const loadSuppliers = async () => {
     try {
+      console.log('[SuppliersPage] Starting loadSuppliers...');
       setLoading(true);
-      const data = await supplierService.getAllSuppliers();
+      const data = await supplierService.getActiveSuppliers();
+      console.log('[SuppliersPage] Got suppliers:', data.length);
       setSuppliers(data);
     } catch (error) {
-      console.error('Erro ao carregar fornecedores:', error);
+      console.error('[SuppliersPage] Error loading suppliers:', error);
     } finally {
       setLoading(false);
+      console.log('[SuppliersPage] setLoading(false)');
     }
   };
 

@@ -29,14 +29,17 @@ export const InvoicesPage: React.FC = () => {
 
   const loadInvoices = async () => {
     try {
+      console.log('[InvoicesPage] Starting loadInvoices...');
       setLoading(true);
       const data = await invoiceService.getAllInvoices();
+      console.log('[InvoicesPage] Got invoices:', data.length);
       setInvoices(data);
       setFilteredInvoices(data);
     } catch (error) {
-      console.error('Erro ao carregar faturas:', error);
+      console.error('[InvoicesPage] Error loading invoices:', error);
     } finally {
       setLoading(false);
+      console.log('[InvoicesPage] setLoading(false)');
     }
   };
 
