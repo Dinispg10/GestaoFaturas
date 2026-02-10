@@ -167,6 +167,11 @@ export const invoiceService = {
     if (!invoice) {
       throw new Error('Fatura não encontrada');
     }
+
+     if (invoice.status !== 'submitted') {
+      throw new Error('Apenas faturas submetidas para pagamento podem ser marcadas como pagas');
+    }
+    
     await this.updateInvoice(
       invoiceId,
       {

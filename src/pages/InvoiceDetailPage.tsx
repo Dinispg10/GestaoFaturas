@@ -73,32 +73,17 @@ export const InvoiceDetailPage: React.FC = () => {
     }
   };
 
-  const handleDeleteInvoice = async () => {
-    if (!id) return;
-
-    const shouldDelete = window.confirm('Tem a certeza que quer eliminar esta fatura?');
-    if (!shouldDelete) return;
-
-    try {
-      await invoiceService.deleteInvoice(id);
-      navigate('/faturas');
-    } catch (error) {
-      console.error('Erro ao eliminar fatura:', error);
-    }
-  };
-
-  const canEdit = true;
-  const canMarkAsPaid = isManager && invoice && ['submitted'].includes(invoice.status);
+  const canMarkAsPaid = isManager && invoice?.status === 'submitted';
 
   const statusMap: Record<string, string> = {
     draft: 'Rascunho',
-    submitted: 'Submetida',
+    submitted: 'Submetida para Pagamento',
     paid: 'Paga',
   };
 
   const eventTypeMap: Record<string, string> = {
     CREATED: 'Criada',
-    SUBMITTED: 'Submetida',
+    SUBMITTED: 'Submetida para Pagamento',
     PAID: 'Marcada como Paga',
     UPDATED: 'Atualizada',
   };
@@ -116,14 +101,6 @@ export const InvoiceDetailPage: React.FC = () => {
       <div className="flex-between mb-4">
         <h2 className="page-title">Fatura #{invoice.invoiceNumber}</h2>
         <div className="flex gap-3">
-          {canEdit && (
-            <Button variant="secondary" onClick={() => navigate(`/faturas/${id}/editar`)}>
-              ✏️ Editar
-            </Button>
-          )}
-          <Button variant="danger" onClick={handleDeleteInvoice}>
-            🗑️ Eliminar
-          </Button>
           <Button variant="secondary" onClick={() => navigate('/faturas')}>
             Voltar
           </Button>

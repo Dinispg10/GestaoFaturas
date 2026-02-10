@@ -11,11 +11,12 @@ export const InvoicesPage: React.FC = () => {
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
+  const [openActionsFor, setOpenActionsFor] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const statusOptions = [
     { value: 'draft', label: 'Rascunho' },
-    { value: 'submitted', label: 'Submetida' },
+    { value: 'submitted', label: 'Submetida para Pagamento' },
     { value: 'paid', label: 'Paga' },
   ];
 
@@ -84,7 +85,7 @@ export const InvoicesPage: React.FC = () => {
   const getStatusBadge = (status: InvoiceStatus) => {
     const statusMap: Record<InvoiceStatus, string> = {
       draft: 'Rascunho',
-      submitted: 'Submetida',
+      submitted: 'Submetida para Pagamento',
       paid: 'Paga',
     };
 
@@ -157,6 +158,19 @@ export const InvoicesPage: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+   const handleDeleteInvoice = async (invoiceId: string) => {
+    const shouldDelete = window.confirm('Tem a certeza que quer eliminar esta fatura?');
+    if (!shouldDelete) return;
+
+    try {
+      await invoiceService.deleteInvoice(invoiceId);
+      setOpenActionsFor(null);
+      await loadInvoices();
+    } catch (error) {
+      console.error('Erro ao eliminar fatura:', error);
+    }
+  };
+
   const columns = [
     {
       key: 'supplierNameSnapshot' as const,
@@ -206,6 +220,50 @@ export const InvoicesPage: React.FC = () => {
       key: 'updatedAt' as const,
       label: 'Atualizado em',
       render: (value: unknown) => formatDate(value as Date),
+    },
+  
+  {
+      key: 'id' as const,
+      label: '',
+      render: (_value: unknown, row: Invoice) => {
+        const isOpen = openActionsFor === row.id;
+
+        return (
+          <div className="actions-cell">
+            <button
+              className="actions-trigger"
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpenActionsFor(isOpen ? null : row.id);
+              }}
+              aria-label="Ações da fatura"
+              title="Ações"
+            >
+              ⋯
+            </button>
+
+            {isOpen && (
+              <div className="actions-menu" onClick={(e) => e.stopPropagation()}>
+                <button
+                  className="actions-menu-item"
+                  onClick={() => {
+                    setOpenActionsFor(null);
+                    navigate(`/faturas/${row.id}/editar`);
+                  }}
+                >
+                  ✏️ Editar
+                </button>
+                <button
+                  className="actions-menu-item danger"
+                  onClick={() => void handleDeleteInvoice(row.id)}
+                >
+                  🗑️ Eliminar
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      },
     },
   ];
 
@@ -257,6 +315,56 @@ export const InvoicesPage: React.FC = () => {
           font-size: 14px;
           color: #666;
           margin: 0;
+        }
+        
+        .actions-cell {
+          position: relative;
+          display: flex;
+          justify-content: center;
+        }
+
+        .actions-trigger {
+          border: 1px solid #ddd8e8;
+          background: #fff;
+          border-radius: 8px;
+          width: 32px;
+          height: 32px;
+          cursor: pointer;
+          font-size: 20px;
+          line-height: 1;
+          color: #4a3167;
+        }
+
+        .actions-menu {
+          position: absolute;
+          top: 38px;
+          right: 0;
+          min-width: 140px;
+          display: flex;
+          flex-direction: column;
+          background: #fff;
+          border: 1px solid #ddd8e8;
+          border-radius: 10px;
+          box-shadow: 0 12px 28px rgba(33, 24, 56, 0.16);
+          z-index: 20;
+          overflow: hidden;
+        }
+
+        .actions-menu-item {
+          border: 0;
+          background: transparent;
+          text-align: left;
+          padding: 10px 12px;
+          cursor: pointer;
+          font-size: 14px;
+        }
+
+        .actions-menu-item:hover {
+          background: #f7f3ff;
+        }
+
+        .actions-menu-item.danger {
+          color: #b3261e;
         }
       `}</style>
     </div>

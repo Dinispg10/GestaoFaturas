@@ -162,7 +162,7 @@ export const InvoiceFormPage: React.FC = () => {
 
       {showDuplicateWarning && (
         <div className="alert alert-info">
-          ⚠️ Já existe uma fatura com este número para este fornecedor. Verifique antes de submeter.
+          ⚠️ Já existe uma fatura com este número para este fornecedor. Verifique antes de submeter para pagamento.
         </div>
       )}
 
@@ -292,7 +292,7 @@ export const InvoiceFormPage: React.FC = () => {
                 onClick={() => handleSubmit('submitted')}
                 loading={loading}
               >
-                Submeter para Aprovação
+                Submeter para Pagamento
               </Button>
             </>
           )}
