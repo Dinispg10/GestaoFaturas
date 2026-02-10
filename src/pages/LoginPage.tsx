@@ -21,12 +21,14 @@ export const LoginPage: React.FC = () => {
       navigate('/');
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao fazer login';
-      if (errorMessage.includes('user-not-found')) {
-        setError('Utilizador não encontrado');
-      } else if (errorMessage.includes('wrong-password')) {
-        setError('Senha incorreta');
-      } else if (errorMessage.includes('invalid-email')) {
-        setError('Email inválido');
+      const normalizedMessage = errorMessage.toLowerCase();
+
+      if (
+        normalizedMessage.includes('credenciais inválidas') ||
+        normalizedMessage.includes('invalid login credentials') ||
+        normalizedMessage.includes('invalid credentials')
+      ) {
+        setError('Credenciais inválidas. Verifique o email e a senha.');
       } else {
         setError('Erro ao fazer login. Tente novamente.');
       }

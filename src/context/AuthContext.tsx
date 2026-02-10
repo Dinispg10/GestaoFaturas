@@ -138,27 +138,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    try {
-      setLoading(true);
-      setError(null);
+    setError(null);
 
-       const { error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    
+     if (authError) {
+      const normalizedMessage = authError.message.toLowerCase();
+      const invalidCredentials =
+        normalizedMessage.includes('invalid login credentials') ||
+        normalizedMessage.includes('invalid credentials');
 
-     
-      if (authError) {
-        const msg = authError.message || 'Email ou password incorretos';
-        setError(msg);
-        setLoading(false);
-        throw new Error(msg);
+      if (invalidCredentials) {
+        throw new Error('Credenciais inválidas');
       }
 
   
-    } catch (err) {
-      setLoading(false);
-      throw err;
+    throw new Error(authError.message || 'Erro ao autenticar utilizador');
     }
   };
 
