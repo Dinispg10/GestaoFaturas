@@ -101,7 +101,8 @@ export const InvoiceFormPage: React.FC = () => {
               storagePath: uploaded.storagePath,
             } as any;
           } catch (err) {
-            setErrors(['Erro no upload do documento']);
+            const message = err instanceof Error ? err.message : 'Erro no upload do documento';
+            setErrors([message]);
             console.error('Upload error:', err);
             setLoading(false);
             return;
@@ -121,7 +122,8 @@ export const InvoiceFormPage: React.FC = () => {
               attachment: { url: uploaded.url, fileName: uploaded.fileName, size: uploaded.size, storagePath: uploaded.storagePath } as any,
             }, user?.id || '');
           } catch (err) {
-            setErrors(['Erro no upload do documento']);
+            const message = err instanceof Error ? err.message : 'Erro no upload do documento';
+            setErrors([message]);
             console.error('Upload error:', err);
             setLoading(false);
             return;
@@ -138,7 +140,7 @@ export const InvoiceFormPage: React.FC = () => {
     }
   };
 
-  const canEdit = !id || ['draft', 'submitted'].includes(invoice.status || 'draft');
+  const canEdit = true;
 
   return (
     <div className="form-container">

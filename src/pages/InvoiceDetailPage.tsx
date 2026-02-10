@@ -5,6 +5,7 @@ import { supplierService } from '../features/suppliers/supplierService';
 import { Invoice, InvoiceEvent } from '../types';
 import { Button } from '../components/Button';
 import { Modal } from '../components/Modal';
+import { supabaseUploadService } from '../utils/supabaseUploadService';
 import { useAuthUser, useIsManager } from '../hooks/useUser';
 
 export const InvoiceDetailPage: React.FC = () => {
@@ -61,6 +62,17 @@ export const InvoiceDetailPage: React.FC = () => {
   };
 
 
+  const handleDownloadAttachment = async () => {
+    if (!invoice?.attachment) return;
+
+    try {
+      const downloadUrl = await supabaseUploadService.getDownloadUrl(invoice.attachment);
+      window.open(downloadUrl, '_blank');
+    } catch (error) {
+      console.error('Erro ao abrir documento:', error);
+    }
+  };
+
   const handleDeleteInvoice = async () => {
     if (!id) return;
 
@@ -75,7 +87,7 @@ export const InvoiceDetailPage: React.FC = () => {
     }
   };
 
-  const canEdit = invoice && ['draft'].includes(invoice.status);
+  const canEdit = true;
   const canMarkAsPaid = isManager && invoice && ['submitted'].includes(invoice.status);
 
   const statusMap: Record<string, string> = {
@@ -157,7 +169,7 @@ export const InvoiceDetailPage: React.FC = () => {
               <p className="text-muted">{(invoice.attachment.size / 1024).toFixed(2)} KB</p>
               <Button
                 variant="primary"
-                onClick={() => window.open(invoice.attachment!.url, '_blank')}
+                onClick={() => void handleDownloadAttachment()}
               >
                 📥 Descarregar
               </Button>

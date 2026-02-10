@@ -1,6 +1,68 @@
 import { supabase } from '../lib/supabase';
 import { FileAttachment } from '../types';
 
+const DEFAULT_STORAGE_BUCKET = 'invoices';
+const CONFIGURED_STORAGE_BUCKET = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || DEFAULT_STORAGE_BUCKET;
+
+const getBucketCandidates = (): string[] => {
+  return Array.from(new Set([CONFIGURED_STORAGE_BUCKET, DEFAULT_STORAGE_BUCKET]));
+};
+
+const extractStoragePathFromUrl = (url?: string): string | null => {
+  if (!url || url.startsWith('blob:')) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(url);
+    const match = parsed.pathname.match(/\/storage\/v1\/object\/(?:public|sign)\/[^/]+\/(.+)$/);
+    return match?.[1] ? decodeURIComponent(match[1]) : null;
+  } catch {
+    return null;
+  }
+};
+
+const resolveStoragePath = (attachment: FileAttachment): string | null => {
+  if (attachment.storagePath && !attachment.storagePath.includes('*')) {
+    return attachment.storagePath;
+  }
+
+  return extractStoragePathFromUrl(attachment.url);
+};
+
+const isBucketNotFound = (error: unknown): boolean => {
+  if (!error || typeof error !== 'object') return false;
+  const maybeMessage = 'message' in error ? String((error as { message: unknown }).message) : '';
+  return maybeMessage.toLowerCase().includes('bucket not found');
+};
+
+const uploadWithFallbackBucket = async (storagePath: string, file: File): Promise<string> => {
+  let bucketNotFoundCount = 0;
+
+  for (const bucket of getBucketCandidates()) {
+    const { error } = await supabase.storage.from(bucket).upload(storagePath, file, { upsert: true });
+
+    if (!error) {
+      return bucket;
+    }
+
+    if (isBucketNotFound(error)) {
+      bucketNotFoundCount += 1;
+      continue;
+    }
+
+    throw error;
+  }
+
+  if (bucketNotFoundCount > 0) {
+    throw new Error(
+      `Bucket de storage não encontrado (${CONFIGURED_STORAGE_BUCKET}). Verifique VITE_SUPABASE_STORAGE_BUCKET ou use o bucket '${DEFAULT_STORAGE_BUCKET}'.`,
+    );
+  }
+
+  throw new Error('Falha no upload do ficheiro');
+};
+
 export const supabaseUploadService = {
   validateFile(file: File): { valid: boolean; error?: string } {
     const maxSize = 5 * 1024 * 1024; // 5MB (otimizado para storage)
@@ -27,19 +89,9 @@ export const supabaseUploadService = {
     const storagePath = `invoices/${invoiceId}/original.${ext}`;
 
     try {
-      // Upload para Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from('invoices')
-        .upload(storagePath, file, { upsert: true });
+      const bucket = await uploadWithFallbackBucket(storagePath, file);
 
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      // Gerar URL pública
-      const { data } = supabase.storage
-        .from('invoices')
-        .getPublicUrl(storagePath);
+      const { data } = supabase.storage.from(bucket).getPublicUrl(storagePath);
 
       return {
         storagePath,
@@ -49,7 +101,10 @@ export const supabaseUploadService = {
       };
     } catch (error) {
       console.error('Erro no upload:', error);
-      throw new Error('Falha no upload do ficheiro');
+      if (isBucketNotFound(error)) {
+        throw new Error(`Bucket de storage não encontrado (${CONFIGURED_STORAGE_BUCKET}). Verifique VITE_SUPABASE_STORAGE_BUCKET.`);
+      }
+      throw new Error(error instanceof Error ? error.message : 'Falha no upload do ficheiro');
     }
   },
 
@@ -63,17 +118,8 @@ export const supabaseUploadService = {
     const storagePath = `invoices/${invoiceId}/proof.${ext}`;
 
     try {
-      const { error: uploadError } = await supabase.storage
-        .from('invoices')
-        .upload(storagePath, file, { upsert: true });
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      const { data } = supabase.storage
-        .from('invoices')
-        .getPublicUrl(storagePath);
+      const bucket = await uploadWithFallbackBucket(storagePath, file);
+      const { data } = supabase.storage.from(bucket).getPublicUrl(storagePath);
 
       return {
         storagePath,
@@ -83,15 +129,50 @@ export const supabaseUploadService = {
       };
     } catch (error) {
       console.error('Erro no upload:', error);
-      throw new Error('Falha no upload do ficheiro');
+      if (isBucketNotFound(error)) {
+        throw new Error(`Bucket de storage não encontrado (${CONFIGURED_STORAGE_BUCKET}). Verifique VITE_SUPABASE_STORAGE_BUCKET.`);
+      }
+      throw new Error(error instanceof Error ? error.message : 'Falha no upload do ficheiro');
     }
   },
 
+  async getDownloadUrl(attachment: FileAttachment): Promise<string> {
+    if (attachment.url.startsWith('blob:')) {
+      return attachment.url;
+    }
+
+    const storagePath = resolveStoragePath(attachment);
+    if (!storagePath) {
+      return attachment.url;
+    }
+
+    for (const bucket of getBucketCandidates()) {
+      const { data, error } = await supabase.storage.from(bucket).createSignedUrl(storagePath, 60 * 60);
+      if (!error && data?.signedUrl) {
+        return data.signedUrl;
+      }
+
+      if (!isBucketNotFound(error)) {
+        break;
+      }
+    }
+
+    return attachment.url;
+  },
+
   async deleteFile(storagePath: string): Promise<void> {
-    try {
-      await supabase.storage.from('invoices').remove([storagePath]);
-    } catch (error) {
-      console.error('Erro ao deletar ficheiro:', error);
+    for (const bucket of getBucketCandidates()) {
+      try {
+        const { error } = await supabase.storage.from(bucket).remove([storagePath]);
+        if (!error || !isBucketNotFound(error)) {
+          return;
+        }
+      } catch (error) {
+        if (!isBucketNotFound(error)) {
+          console.error('Erro ao deletar ficheiro:', error);
+          return;
+        }
+      }
     }
   },
 };

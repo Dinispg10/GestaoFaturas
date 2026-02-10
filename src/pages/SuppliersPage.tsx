@@ -51,7 +51,7 @@ export const SuppliersPage: React.FC = () => {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingId(null);
-    setFormData({ name: '', email: '', phone: '' });
+    setFormData({ name: '' });
     setErrors([]);
   };
 

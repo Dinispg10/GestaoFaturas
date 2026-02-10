@@ -11,6 +11,18 @@ const EVENT_SELECT = `
   by_user:users!invoice_events_by_user_id_fkey(name)
 `;
 
+const extractStoragePathFromAttachmentUrl = (attachmentUrl?: string): string => {
+  if (!attachmentUrl) return '';
+
+  try {
+    const parsed = new URL(attachmentUrl);
+    const match = parsed.pathname.match(/\/storage\/v1\/object\/(?:public|sign)\/[^/]+\/(.+)$/);
+    return match?.[1] ? decodeURIComponent(match[1]) : '';
+  } catch {
+    return '';
+  }
+};
+
 export const invoiceService = {
   async createInvoice(
     invoice: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'>,
@@ -211,7 +223,7 @@ export const invoiceService = {
         url: data.attachment_url,
         fileName: data.attachment_url.split('/').pop() || 'documento',
         size: 0,
-        storagePath: `invoices/${data.id}/*`,
+        storagePath: extractStoragePathFromAttachmentUrl(data.attachment_url),
       } : undefined,
       notes: data.notes,
       createdBy: data.created_by_user?.name || data.created_by,
