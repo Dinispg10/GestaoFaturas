@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { invoiceService } from '../features/invoices/invoiceService';
 import { Invoice, InvoiceStatus } from '../types';
@@ -10,6 +10,7 @@ export const InvoicesPage: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   const navigate = useNavigate();
 
   const statusOptions = [
@@ -18,7 +19,20 @@ export const InvoicesPage: React.FC = () => {
     { value: 'paid', label: 'Paga' },
   ];
 
+  const supplierOptions = useMemo(() => {
+    const supplierMap = new Map<string, string>();
+
+    invoices.forEach((invoice) => {
+      supplierMap.set(invoice.supplierId, invoice.supplierNameSnapshot);
+    });
+
+    return Array.from(supplierMap.entries())
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label, 'pt-PT'));
+  }, [invoices]);
+
   const filterConfig = [
+    { key: 'supplierId', label: 'Fornecedor', type: 'select' as const, options: supplierOptions },
     { key: 'status', label: 'Estado', type: 'select' as const, options: statusOptions },
     { key: 'search', label: 'Pesquisar', type: 'text' as const, placeholder: 'Nº Fatura ou Fornecedor' },
   ];
@@ -46,6 +60,10 @@ export const InvoicesPage: React.FC = () => {
   const applyFilters = (newFilters: Record<string, string>) => {
     let result = invoices;
 
+     if (newFilters.supplierId) {
+      result = result.filter((inv) => inv.supplierId === newFilters.supplierId);
+    }
+
     if (newFilters.status) {
       result = result.filter((inv) => inv.status === newFilters.status);
     }
@@ -59,6 +77,7 @@ export const InvoicesPage: React.FC = () => {
       );
     }
 
+    setActiveFilters(newFilters);
     setFilteredInvoices(result);
   };
 
@@ -82,6 +101,60 @@ export const InvoicesPage: React.FC = () => {
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' });
+  };
+
+  const escapeCsv = (value: string) => {
+    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+      return `"${value.replace(/"/g, '""')}"`;
+    }
+
+    return value;
+  };
+
+  const handleExportCsv = () => {
+    if (filteredInvoices.length === 0) {
+      window.alert('Não há faturas para exportar com os filtros atuais.');
+      return;
+    }
+
+    const headers = [
+      'Fornecedor',
+      'Numero Fatura',
+      'Data Fatura',
+      'Data Vencimento',
+      'Estado',
+      'Total',
+      'Criado Por',
+      'Atualizado Em',
+    ];
+
+    const rows = filteredInvoices.map((invoice) => [
+      escapeCsv(invoice.supplierNameSnapshot),
+      escapeCsv(invoice.invoiceNumber),
+      formatDate(invoice.invoiceDate),
+      formatDate(invoice.dueDate),
+      invoice.status,
+      invoice.totalAmount.toFixed(2),
+      escapeCsv(invoice.createdBy),
+      formatDate(invoice.updatedAt),
+    ]);
+
+    const content = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const supplierName = filteredInvoices[0].supplierNameSnapshot;
+    const fileName = activeFilters.supplierId
+      ? `faturas_${supplierName.replace(/\s+/g, '_').toLowerCase()}.csv`
+      : 'faturas_todos_fornecedores.csv';
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const columns = [
@@ -143,9 +216,14 @@ export const InvoicesPage: React.FC = () => {
           <h2 className="page-title">Faturas de Compra</h2>
           <p className="page-subtitle">Total: {filteredInvoices.length} faturas</p>
         </div>
-        <Button variant="primary" onClick={() => navigate('/faturas/nova')}>
-          + Nova Fatura
-        </Button>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <Button variant="secondary" onClick={handleExportCsv}>
+            Exportar CSV por fornecedor
+          </Button>
+          <Button variant="primary" onClick={() => navigate('/faturas/nova')}>
+            + Nova Fatura
+          </Button>
+        </div>
       </div>
 
       <FilterBar filters={filterConfig} onFilterChange={applyFilters} />
