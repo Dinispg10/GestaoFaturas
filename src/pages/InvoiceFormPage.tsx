@@ -1,0 +1,401 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { invoiceService } from '../features/invoices/invoiceService';
+import { supplierService } from '../features/suppliers/supplierService';
+import { Invoice, Supplier } from '../types';
+import { supabaseUploadService } from '../utils/supabaseUploadService';
+import { Button } from '../components/Button';
+import { FileUpload } from '../components/FileUpload';
+import { useAuthUser } from '../hooks/useUser';
+
+export const InvoiceFormPage: React.FC = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const user = useAuthUser();
+
+  const [invoice, setInvoice] = useState<Partial<Invoice>>({
+    status: 'draft',
+    notes: '',
+  });
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const supplierList = await supplierService.getActiveSuppliers();
+      setSuppliers(supplierList);
+
+      if (id) {
+        const invoiceData = await invoiceService.getInvoice(id);
+        if (invoiceData) {
+          setInvoice(invoiceData);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+    }
+  };
+
+  const checkForDuplicate = async () => {
+    if (invoice.supplierId && invoice.invoiceNumber) {
+      const isDuplicate = await invoiceService.checkDuplicateInvoice(
+        invoice.supplierId,
+        invoice.invoiceNumber
+      );
+      setShowDuplicateWarning(isDuplicate);
+      return !isDuplicate;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (status: 'draft' | 'submitted') => {
+    const validationErrors: string[] = [];
+
+    if (!invoice.supplierId) validationErrors.push('Fornecedor é obrigatório');
+    if (!invoice.invoiceNumber) validationErrors.push('Nº de Fatura é obrigatório');
+    if (!invoice.invoiceDate) validationErrors.push('Data da Fatura é obrigatória');
+    if (!invoice.totalAmount && invoice.totalAmount !== 0) validationErrors.push('Total é obrigatório');
+
+    if (status === 'submitted' && !invoice.attachment) {
+      validationErrors.push('Documento é obrigatório para submeter');
+    }
+
+    if (validationErrors.length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    if (!(await checkForDuplicate())) {
+      validationErrors.push('Já existe uma fatura com este número para este fornecedor');
+      setErrors(validationErrors);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const supplier = suppliers.find((s) => s.id === invoice.supplierId);
+
+      const invoiceData: Partial<Invoice> = {
+        ...invoice,
+        status,
+        supplierNameSnapshot: supplier?.name || '',
+        createdBy: invoice.createdBy || user?.id || '',
+      };
+
+      if (id) {
+        // If a new local file was selected, upload it first
+        if (invoice.attachment && invoice.attachment.file) {
+          try {
+            const uploaded = await supabaseUploadService.uploadInvoiceAttachment(invoice.attachment.file, id);
+            invoiceData.attachment = {
+              url: uploaded.url,
+              fileName: uploaded.fileName,
+              size: uploaded.size,
+              storagePath: uploaded.storagePath,
+            } as any;
+          } catch (err) {
+            setErrors(['Erro no upload do documento']);
+            console.error('Upload error:', err);
+            setLoading(false);
+            return;
+          }
+        }
+
+        await invoiceService.updateInvoice(id, invoiceData, user?.id || '', 'UPDATED');
+        navigate(`/faturas/${id}`);
+      } else {
+        const newId = await invoiceService.createInvoice(invoiceData as Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'>);
+
+        // If a file was selected before creating, upload it now and patch the invoice
+        if (invoice.attachment && invoice.attachment.file) {
+          try {
+            const uploaded = await supabaseUploadService.uploadInvoiceAttachment(invoice.attachment.file, newId);
+            await invoiceService.updateInvoice(newId, {
+              attachment: { url: uploaded.url, fileName: uploaded.fileName, size: uploaded.size, storagePath: uploaded.storagePath } as any,
+            }, user?.id || '', 'UPDATED');
+          } catch (err) {
+            setErrors(['Erro no upload do documento']);
+            console.error('Upload error:', err);
+            setLoading(false);
+            return;
+          }
+        }
+
+        navigate(`/faturas/${newId}`);
+      }
+    } catch (error) {
+      setErrors(['Erro ao guardar fatura']);
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const canEdit = !id || ['draft', 'submitted'].includes(invoice.status || 'draft');
+
+  return (
+    <div className="form-container">
+      <div className="flex-between mb-4">
+        <h2 className="page-title">{id ? 'Editar Fatura' : 'Nova Fatura'}</h2>
+        <Button variant="secondary" onClick={() => navigate('/faturas')}>
+          Cancelar
+        </Button>
+      </div>
+
+      {errors.length > 0 && (
+        <div className="alert alert-error">
+          <ul>
+            {errors.map((error, i) => (
+              <li key={i}>{error}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {showDuplicateWarning && (
+        <div className="alert alert-info">
+          ⚠️ Já existe uma fatura com este número para este fornecedor. Verifique antes de submeter.
+        </div>
+      )}
+
+      <form onSubmit={(e) => { e.preventDefault(); }}>
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="supplier">Fornecedor *</label>
+            <select
+              id="supplier"
+              value={invoice.supplierId || ''}
+              onChange={(e) => setInvoice({ ...invoice, supplierId: e.target.value })}
+              disabled={!canEdit}
+            >
+              <option value="">Selecionar Fornecedor</option>
+              {suppliers.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="invoiceNumber">Nº de Fatura *</label>
+            <input
+              id="invoiceNumber"
+              type="text"
+              value={invoice.invoiceNumber || ''}
+              onChange={(e) => setInvoice({ ...invoice, invoiceNumber: e.target.value })}
+              disabled={!canEdit}
+            />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="invoiceDate">Data da Fatura *</label>
+            <input
+              id="invoiceDate"
+              type="date"
+              value={
+                invoice.invoiceDate
+                  ? new Date(invoice.invoiceDate).toISOString().split('T')[0]
+                  : ''
+              }
+              onChange={(e) => setInvoice({ ...invoice, invoiceDate: new Date(e.target.value) })}
+              disabled={!canEdit}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="dueDate">Data de Vencimento</label>
+            <input
+              id="dueDate"
+              type="date"
+              value={
+                invoice.dueDate
+                  ? new Date(invoice.dueDate).toISOString().split('T')[0]
+                  : ''
+              }
+              onChange={(e) => setInvoice({ ...invoice, dueDate: new Date(e.target.value) })}
+              disabled={!canEdit}
+            />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="totalAmount">Total (€) *</label>
+            <input
+              id="totalAmount"
+              type="number"
+              step="0.01"
+              value={invoice.totalAmount || 0}
+              onChange={(e) => setInvoice({ ...invoice, totalAmount: parseFloat(e.target.value) })}
+              disabled={!canEdit}
+            />
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="attachmentUrl">Referência do Documento (URL) *</label>
+          <FileUpload
+            onFileSelected={(file) => setInvoice({ ...invoice, attachment: file })}
+            onError={(error) => setErrors([...errors, error])}
+            disabled={!canEdit}
+          />
+          {invoice.attachment && (
+            <div className="attachment-info">
+              <span>📎 {invoice.attachment.fileName}</span>
+              <a href={invoice.attachment.url} target="_blank" rel="noreferrer">
+                Abrir
+              </a>
+            </div>
+          )}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="notes">Notas</label>
+          <textarea
+            id="notes"
+            value={invoice.notes || ''}
+            onChange={(e) => setInvoice({ ...invoice, notes: e.target.value })}
+            disabled={!canEdit}
+            placeholder="Adicione notas sobre esta fatura..."
+          />
+        </div>
+
+        <div className="form-actions">
+          <Button
+            variant="secondary"
+            onClick={() => navigate('/faturas')}
+          >
+            Cancelar
+          </Button>
+          {canEdit && (
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => handleSubmit('draft')}
+                loading={loading}
+              >
+                Guardar como Rascunho
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => handleSubmit('submitted')}
+                loading={loading}
+              >
+                Submeter para Aprovação
+              </Button>
+            </>
+          )}
+        </div>
+      </form>
+
+      <style>{`
+        .form-container {
+          max-width: 800px;
+          margin: 0 auto;
+        }
+
+        .flex-between {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 24px;
+        }
+
+        .page-title {
+          font-size: 24px;
+          font-weight: 600;
+          margin: 0;
+        }
+
+        .form-row {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 16px;
+          margin-bottom: 16px;
+        }
+
+        .form-group {
+          margin-bottom: 16px;
+        }
+
+        .form-group label {
+          display: block;
+          margin-bottom: 6px;
+          font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+          width: 100%;
+          padding: 8px 12px;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          font-size: 14px;
+          font-family: inherit;
+        }
+
+        .form-group textarea {
+          resize: vertical;
+          min-height: 100px;
+        }
+
+        .attachment-info {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 8px 12px;
+          background-color: #e8f4f8;
+          border-radius: 4px;
+          margin-bottom: 8px;
+        }
+
+        .attachment-info a {
+          color: #0066cc;
+          text-decoration: none;
+          font-weight: 500;
+        }
+
+        .form-actions {
+          display: flex;
+          gap: 12px;
+          margin-top: 30px;
+          justify-content: flex-end;
+        }
+
+        .alert {
+          padding: 12px 16px;
+          border-radius: 4px;
+          margin-bottom: 16px;
+        }
+
+        .alert-error {
+          background-color: #ffebee;
+          color: #d32f2f;
+          border: 1px solid #f5a5a5;
+        }
+
+        .alert-error ul {
+          margin: 0;
+          padding-left: 20px;
+        }
+
+        .alert-info {
+          background-color: #e3f2fd;
+          color: #1976d2;
+          border: 1px solid #90caf9;
+        }
+      `}</style>
+    </div>
+  );
+};

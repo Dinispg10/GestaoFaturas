@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Background -->
+  <rect width="200" height="200" fill="#0066cc" rx="10"/>
+  
+  <!-- Pharmacy cross -->
+  <g transform="translate(100, 100)">
+    <!-- Vertical bar -->
+    <rect x="-8" y="-40" width="16" height="80" fill="white"/>
+    <!-- Horizontal bar -->
+    <rect x="-40" y="-8" width="80" height="16" fill="white"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="100" y="165" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="white" text-anchor="middle">FARMÁCIA</text>
+  <text x="100" y="185" font-family="Arial, sans-serif" font-size="14" fill="#e0f0ff" text-anchor="middle">PINTO</text>
+</svg>
