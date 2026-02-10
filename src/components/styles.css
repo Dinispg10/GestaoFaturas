@@ -1,9 +1,10 @@
 .data-table-container {
   width: 100%;
   overflow-x: auto;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background: white;
+  border: 1px solid #ddd8e8;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 10px 24px rgba(33, 24, 56, 0.08);
 }
 
 .data-table {
@@ -13,42 +14,42 @@
 }
 
 .data-table thead {
-  background-color: #f5f5f5;
-  border-bottom: 2px solid #ddd;
+  background: linear-gradient(135deg, #f6f1ff 0%, #e9f5f2 100%);
+  border-bottom: 1px solid #ddd8e8;
 }
 
 .data-table th {
-  padding: 12px;
+  padding: 13px 14px;
   text-align: left;
-  font-weight: 600;
-  color: #333;
+  font-weight: 700;
+  color: #4a3167;
 }
 
 .data-table td {
-  padding: 12px;
-  border-bottom: 1px solid #eee;
+  padding: 12px 14px;
+  border-bottom: 1px solid #f0edf7;
 }
 
 .data-table tbody tr:hover {
-  background-color: #f9f9f9;
+  background-color: #f8f5ff;
 }
 
 .data-table-loading,
 .data-table-empty {
   padding: 40px;
   text-align: center;
-  color: #666;
+  color: #6f7283;
   background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  border: 1px solid #ddd8e8;
+  border-radius: 14px;
 }
 
 .spinner {
   display: inline-block;
   width: 30px;
   height: 30px;
-  border: 3px solid #ddd;
-  border-top: 3px solid #0066cc;
+  border: 3px solid #ddd8e8;
+  border-top: 3px solid #5b2a86;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

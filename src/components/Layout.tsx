@@ -24,7 +24,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       <header className="app-header">
         <div className="header-left">
           <div className="logo-section">
-            <img src="/logo.svg" alt="Logo" className="header-logo" />
+            <img src="/logo.png" alt="Logo" className="header-logo" />
             <div>
               <h1 className="app-title">Farmácia Pinto</h1>
               <p className="app-subtitle">Registo de Faturas de Compra</p>
@@ -69,14 +69,15 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       <style>{`
         .app-header {
-          background: white;
-          border-bottom: 1px solid #ddd;
+          background: rgba(255, 255, 255, 0.95);
+          border-bottom: 1px solid #ddd8e8;
           padding: 0 24px;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          height: 70px;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          height: 78px;
+          backdrop-filter: blur(8px);
+          box-shadow: 0 6px 18px rgba(37, 28, 57, 0.08);
         }
 
         .header-left {
@@ -92,51 +93,58 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         }
 
         .header-logo {
-          width: 40px;
-          height: 40px;
-          border-radius: 4px;
-          background-color: #f5f5f5;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 20px;
+          width: 52px;
+          height: 52px;
+          border-radius: 10px;
+          background-color: #f2edf9;
+          border: 1px solid #dfd6ef;
+          object-fit: cover;
+          object-position: center;
+          transform: scale(1.04);
+          box-shadow: 0 6px 14px rgba(91, 42, 134, 0.15);
         }
 
         .app-title {
-          font-size: 16px;
-          font-weight: 600;
+          font-size: 17px;
+          font-weight: 700;
           margin: 0;
-          color: #0066cc;
+          color: #4f2d74;
         }
 
         .app-subtitle {
           font-size: 12px;
-          color: #666;
+          color: #677283;
           margin: 2px 0 0 0;
         }
 
         .header-nav {
           display: flex;
-          gap: 20px;
-          margin: 0 40px;
+          gap: 10px;
+          margin: 0 30px;
+          background: #f4f1fa;
+          border: 1px solid #e2daef;
+          border-radius: 999px;
+          padding: 6px;
         }
 
         .nav-link {
-          color: #666;
+          color: #5f6374;
           text-decoration: none;
-          font-weight: 500;
-          padding-bottom: 8px;
-          border-bottom: 2px solid transparent;
-          transition: all 0.3s ease;
+          font-weight: 600;
+          padding: 8px 14px;
+          border-radius: 999px;
+          transition: all 0.25s ease;
         }
 
         .nav-link:hover {
-          color: #0066cc;
+          color: #4f2d74;
+          background: #ebe4f7;
         }
 
         .nav-link.active {
-          color: #0066cc;
-          border-bottom-color: #0066cc;
+          color: #fff;
+          background: linear-gradient(135deg, #5b2a86 0%, #1f6f5f 100%);
+          box-shadow: 0 8px 14px rgba(79, 45, 116, 0.22);
         }
 
         .header-right {
@@ -147,15 +155,19 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         .user-info {
           font-size: 14px;
-          color: #666;
+          color: #4f2d74;
+          font-weight: 600;
         }
 
-        @media (max-width: 768px) {
+         @media (max-width: 900px) {
           .app-header {
             flex-direction: column;
             height: auto;
             padding: 12px;
-            gap: 12px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+            border-radius: 14px;
           }
 
           .header-nav {

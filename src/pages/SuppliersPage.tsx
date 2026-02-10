@@ -171,81 +171,12 @@ export const SuppliersPage: React.FC = () => {
         </div>
 
         <style>{`
-          .form-group {
-            margin-bottom: 16px;
-          }
-
-          .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 500;
-          }
-
-          .form-group input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-          }
-
-          .alert {
-            padding: 12px 16px;
-            border-radius: 4px;
-            margin-bottom: 16px;
-          }
-
-          .alert-error {
-            background-color: #ffebee;
-            color: #d32f2f;
-            border: 1px solid #f5a5a5;
-          }
-
+          
           .alert-error ul {
             margin: 0;
             padding-left: 20px;
           }
 
-          .badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-          }
-
-          .badge-approved {
-            background-color: #d4edda;
-            color: #155724;
-          }
-
-          .badge-draft {
-            background-color: #e0e0e0;
-            color: #333;
-          }
-
-          .flex-between {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 24px;
-          }
-
-          .page-title {
-            font-size: 24px;
-            font-weight: 600;
-            margin: 0 0 8px 0;
-          }
-
-          .page-subtitle {
-            font-size: 14px;
-            color: #666;
-            margin: 0;
-          }
-
-          .mb-4 {
-            margin-bottom: 16px;
-          }
         `}</style>
       </Modal>
     </div>

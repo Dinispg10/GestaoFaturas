@@ -40,7 +40,7 @@ export const LoginPage: React.FC = () => {
       <div className="login-card">
         <div className="login-header">
           <div className="logo-placeholder">
-            <img src="/logo.svg" alt="Farmácia Pinto" style={{ maxHeight: '60px' }} />
+            <img src="/logo.png" alt="Farmácia Pinto" style={{ maxHeight: '60px' }} />
           </div>
           <h1>Farmácia Pinto</h1>
           <p>Registo de Faturas de Compra</p>
@@ -89,17 +89,19 @@ export const LoginPage: React.FC = () => {
           align-items: center;
           justify-content: center;
           min-height: 100vh;
-          background: linear-gradient(135deg, #4a3f83 0%, #2d9f6d 100%);
+          background: linear-gradient(135deg, #2c7c67 0%, #5b2a86 55%, #37244f 100%);
           padding: 20px;
         }
 
         .login-card {
-          background: white;
-          border-radius: 8px;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+                    background: rgba(255, 255, 255, 0.95);
+          border-radius: 18px;
+          border: 1px solid #ddd8e8;
+          box-shadow: 0 22px 45px rgba(29, 20, 45, 0.28);
           width: 100%;
-          max-width: 400px;
-          padding: 40px;
+          max-width: 430px;
+          padding: 38px;
+          backdrop-filter: blur(8px);
         }
 
         .login-header {
@@ -107,41 +109,46 @@ export const LoginPage: React.FC = () => {
           margin-bottom: 30px;
         }
 
-        .logo-placeholder {
-          width: 80px;
-          height: 80px;
-          background-color: #f5f5f5;
-          border-radius: 8px;
+       .logo-placeholder {
+          width: 140px;
+          height: 112px;
+          background: linear-gradient(135deg, #f4f1fa 0%, #eef7f4 100%);
+          border: 1px solid #ddd6ee;
+          border-radius: 14px;
+          overflow: hidden;
           display: flex;
           align-items: center;
           justify-content: center;
           margin: 0 auto 16px;
-          font-size: 12px;
-          color: #999;
+          box-shadow: 0 10px 18px rgba(65, 40, 98, 0.14);
         }
 
-        .logo-placeholder img {
-          max-width: 100%;
-          max-height: 100%;
+        .login-logo {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
+          transform: scale(1.08);
         }
 
         .login-header h1 {
-          font-size: 24px;
+          font-size: 30px;
           margin-bottom: 8px;
-          color: #4a3f83;
+          letter-spacing: 0.2px;
+          color: #4f2d74;
         }
 
         .login-header p {
-          color: #666;
-          font-size: 14px;
+          color: #5d6b7a;
+          font-size: 15px;
         }
 
         .login-footer {
           text-align: center;
-          margin-top: 30px;
-          padding-top: 20px;
-          border-top: 1px solid #eee;
-          color: #999;
+          margin-top: 26px;
+          padding-top: 18px;
+          border-top: 1px solid #e7e0f3;
+          color: #768293;
           font-size: 12px;
         }
 
