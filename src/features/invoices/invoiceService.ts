@@ -23,6 +23,21 @@ const extractStoragePathFromAttachmentUrl = (attachmentUrl?: string): string => 
   }
 };
 
+const getFileNameFromAttachmentUrl = (attachmentUrl?: string): string => {
+  if (!attachmentUrl) return 'documento';
+
+  try {
+    const parsed = new URL(attachmentUrl);
+    const parts = parsed.pathname.split('/').filter(Boolean);
+    const lastPart = parts[parts.length - 1];
+    return lastPart ? decodeURIComponent(lastPart) : 'documento';
+  } catch {
+    const lastPart = attachmentUrl.split('/').pop();
+    return lastPart ? decodeURIComponent(lastPart) : 'documento';
+  }
+};
+
+
 export const invoiceService = {
   async createInvoice(
     invoice: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'>,
@@ -221,8 +236,7 @@ export const invoiceService = {
       status: data.status,
       attachment: data.attachment_url ? {
         url: data.attachment_url,
-        fileName: data.attachment_url.split('/').pop() || 'documento',
-        size: 0,
+        fileName: getFileNameFromAttachmentUrl(data.attachment_url),
         storagePath: extractStoragePathFromAttachmentUrl(data.attachment_url),
       } : undefined,
       notes: data.notes,

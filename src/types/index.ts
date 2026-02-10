@@ -20,7 +20,7 @@ export type InvoiceStatus = 'draft' | 'submitted' | 'paid';
 export interface FileAttachment {
   url: string;
   fileName: string;
-  size: number;
+  size?: number;
   storagePath: string;
   file?: File;
 }

@@ -166,7 +166,6 @@ export const InvoiceDetailPage: React.FC = () => {
           {invoice.attachment ? (
             <div className="attachment-section">
               <p className="attachment-name">📎 {invoice.attachment.fileName}</p>
-              <p className="text-muted">{(invoice.attachment.size / 1024).toFixed(2)} KB</p>
               <Button
                 variant="primary"
                 onClick={() => void handleDownloadAttachment()}

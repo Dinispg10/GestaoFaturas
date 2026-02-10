@@ -37,7 +37,6 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       onFileSelected?.({
         url: URL.createObjectURL(file),
         fileName: file.name,
-        size: file.size,
         storagePath: '',
         file,
       });

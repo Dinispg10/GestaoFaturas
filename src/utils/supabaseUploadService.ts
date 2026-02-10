@@ -36,6 +36,16 @@ const isBucketNotFound = (error: unknown): boolean => {
   return maybeMessage.toLowerCase().includes('bucket not found');
 };
 
+const sanitizeFileName = (fileName: string): string => {
+  const cleaned = fileName
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9._-]/g, '_');
+
+  return cleaned || `documento-${Date.now()}`;
+};
+
 const uploadWithFallbackBucket = async (storagePath: string, file: File): Promise<string> => {
   let bucketNotFoundCount = 0;
 
@@ -85,8 +95,8 @@ export const supabaseUploadService = {
       throw new Error(validation.error || 'Ficheiro inválido');
     }
 
-    const ext = file.name.split('.').pop() || 'bin';
-    const storagePath = `invoices/${invoiceId}/original.${ext}`;
+   const storageFileName = sanitizeFileName(file.name);
+   const storagePath = `invoices/${invoiceId}/${storageFileName}`;
 
     try {
       const bucket = await uploadWithFallbackBucket(storagePath, file);
@@ -96,8 +106,7 @@ export const supabaseUploadService = {
       return {
         storagePath,
         url: data.publicUrl,
-        fileName: file.name,
-        size: file.size,
+        fileName: storageFileName,
       };
     } catch (error) {
       console.error('Erro no upload:', error);
@@ -114,8 +123,8 @@ export const supabaseUploadService = {
       throw new Error(validation.error || 'Ficheiro inválido');
     }
 
-    const ext = file.name.split('.').pop() || 'bin';
-    const storagePath = `invoices/${invoiceId}/proof.${ext}`;
+    const storageFileName = sanitizeFileName(file.name);
+    const storagePath = `invoices/${invoiceId}/pagamento-${storageFileName}`;
 
     try {
       const bucket = await uploadWithFallbackBucket(storagePath, file);
@@ -124,8 +133,7 @@ export const supabaseUploadService = {
       return {
         storagePath,
         url: data.publicUrl,
-        fileName: file.name,
-        size: file.size,
+        fileName: `pagamento-${storageFileName}`,
       };
     } catch (error) {
       console.error('Erro no upload:', error);
