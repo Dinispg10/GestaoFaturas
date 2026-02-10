@@ -39,15 +39,16 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps<any>>(
 
     return (
       <div ref={ref} className="data-table-container">
-        <table className="data-table">
-          <thead>
+        <div className="data-table-scroll">
+          <table className="data-table">
+            <thead>
             <tr>
               {columns.map((col) => (
                 <th key={String(col.key)}>{col.label}</th>
               ))}
             </tr>
           </thead>
-          <tbody>
+            <tbody>
             {data.map((row, rowIndex) => (
               <tr
                 key={rowIndex}
@@ -61,8 +62,9 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps<any>>(
                 ))}
               </tr>
             ))}
-          </tbody>
-        </table>
+         </tbody>
+          </table>
+        </div>
       </div>
     );
   }

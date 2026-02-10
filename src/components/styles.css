@@ -1,10 +1,17 @@
 .data-table-container {
   width: 100%;
-  overflow-x: auto;
+  overflow: visible;
   border: 1px solid #ddd8e8;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.95);
   box-shadow: 0 10px 24px rgba(33, 24, 56, 0.08);
+}
+
+.data-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  border-radius: 14px;
 }
 
 .data-table {

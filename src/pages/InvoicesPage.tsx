@@ -104,58 +104,147 @@ export const InvoicesPage: React.FC = () => {
     return value.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' });
   };
 
-  const escapeCsv = (value: string) => {
-    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-      return `"${value.replace(/"/g, '""')}"`;
-    }
+   const getStatusLabel = (status: InvoiceStatus) => {
+    const statusMap: Record<InvoiceStatus, string> = {
+      draft: 'Rascunho',
+      submitted: 'Submetida para Pagamento',
+      paid: 'Paga',
+    };
 
-    return value;
+    return statusMap[status];
   };
 
-  const handleExportCsv = () => {
+  const handleExportPdf = () => {
     if (filteredInvoices.length === 0) {
       window.alert('Não há faturas para exportar com os filtros atuais.');
       return;
     }
 
-    const headers = [
-      'Fornecedor',
-      'Numero Fatura',
-      'Data Fatura',
-      'Data Vencimento',
-      'Estado',
-      'Total',
-      'Criado Por',
-      'Atualizado Em',
-    ];
+    const tableRows = filteredInvoices
+      .map(
+        (invoice) => `
+          <tr>
+            <td>${invoice.supplierNameSnapshot}</td>
+            <td>${invoice.invoiceNumber}</td>
+            <td>${formatDate(invoice.invoiceDate)}</td>
+            <td>${formatDate(invoice.dueDate)}</td>
+            <td>${getStatusLabel(invoice.status)}</td>
+            <td>${formatCurrency(invoice.totalAmount)}</td>
+            <td>${invoice.createdBy}</td>
+            <td>${formatDate(invoice.updatedAt)}</td>
+          </tr>
+        `
+      )
+      .join('');
 
-    const rows = filteredInvoices.map((invoice) => [
-      escapeCsv(invoice.supplierNameSnapshot),
-      escapeCsv(invoice.invoiceNumber),
-      formatDate(invoice.invoiceDate),
-      formatDate(invoice.dueDate),
-      invoice.status,
-      invoice.totalAmount.toFixed(2),
-      escapeCsv(invoice.createdBy),
-      formatDate(invoice.updatedAt),
-    ]);
+    const filtersSummary = [
+      activeFilters.supplierId
+        ? `Fornecedor: ${supplierOptions.find((opt) => opt.value === activeFilters.supplierId)?.label ?? 'N/A'}`
+        : null,
+      activeFilters.status
+        ? `Estado: ${statusOptions.find((opt) => opt.value === activeFilters.status)?.label ?? 'N/A'}`
+        : null,
+      activeFilters.search ? `Pesquisa: ${activeFilters.search}` : null,
+    ]
+      .filter(Boolean)
+      .join(' | ');
 
-    const content = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
-    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
+    const printWindow = window.open('', '_blank');
 
-    const supplierName = filteredInvoices[0].supplierNameSnapshot;
-    const fileName = activeFilters.supplierId
-      ? `faturas_${supplierName.replace(/\s+/g, '_').toLowerCase()}.csv`
-      : 'faturas_todos_fornecedores.csv';
+    if (!printWindow) {
+      window.alert('Não foi possível abrir a janela de impressão. Verifique o bloqueador de pop-ups.');
+      return;
+    }
 
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    const reportDate = new Date().toLocaleString('pt-PT');
+
+    printWindow.document.write(`
+      <!doctype html>
+      <html lang="pt">
+        <head>
+          <meta charset="UTF-8" />
+          <title>Relatório de faturas</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 24px;
+              color: #1f1f1f;
+            }
+
+            h1 {
+              margin: 0 0 8px;
+              font-size: 22px;
+            }
+
+            .meta {
+              margin-bottom: 8px;
+              color: #555;
+              font-size: 12px;
+            }
+
+            .filters {
+              margin-bottom: 16px;
+              background: #f7f7f9;
+              padding: 10px 12px;
+              border-radius: 8px;
+              font-size: 13px;
+            }
+
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              font-size: 12px;
+            }
+
+            th, td {
+              border: 1px solid #d6d6de;
+              padding: 8px;
+              text-align: left;
+            }
+
+            th {
+              background: #f0ebfa;
+            }
+
+            @media print {
+              body {
+                margin: 10mm;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Relatório de Faturas</h1>
+          <div class="meta">Gerado em: ${reportDate}</div>
+          <div class="meta">Total de registos: ${filteredInvoices.length}</div>
+          <div class="filters">
+            <strong>Filtros aplicados:</strong> ${filtersSummary || 'Sem filtros'}
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Fornecedor</th>
+                <th>Nº Fatura</th>
+                <th>Data</th>
+                <th>Vencimento</th>
+                <th>Estado</th>
+                <th>Total</th>
+                <th>Criado por</th>
+                <th>Atualizado em</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
   };
 
    const handleDeleteInvoice = async (invoiceId: string) => {
@@ -275,8 +364,8 @@ export const InvoicesPage: React.FC = () => {
           <p className="page-subtitle">Total: {filteredInvoices.length} faturas</p>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
-          <Button variant="secondary" onClick={handleExportCsv}>
-            Exportar CSV por fornecedor
+          <Button variant="secondary" onClick={handleExportPdf}>
+            Exportar PDF com filtros
           </Button>
           <Button variant="primary" onClick={() => navigate('/faturas/nova')}>
             + Nova Fatura
