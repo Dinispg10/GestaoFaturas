@@ -220,25 +220,18 @@ where email = 'staff@test.com';
 
 ### Limpeza Automática (Opcional)
 
-Para apagar ficheiros com > 6 meses, criar function em Supabase:
+Para evitar encher o bucket free do Supabase sem perder os dados de negócio da fatura:
 
-```sql
--- Function: Limpar attachments antigos
-CREATE OR REPLACE FUNCTION cleanup_old_attachments()
-RETURNS void AS $$
-BEGIN
-  -- Apagar ficheiros de faturas com > 6 meses
-  DELETE FROM storage.objects
-  WHERE bucket_id = 'invoices'
-    AND created_at < NOW() - INTERVAL '6 months';
-END;
-$$ LANGUAGE plpgsql;
+1. Execute o script [`SUPABASE_STORAGE_CLEANUP.sql`](SUPABASE_STORAGE_CLEANUP.sql) no SQL Editor.
+2. O script:
+   - remove ficheiros do bucket `invoices` com mais de 6 meses;
+   - coloca `attachment_url = NULL` nas faturas antigas (mantendo todos os restantes dados);
+   - agenda job mensal com `pg_cron` (`dia 1 às 03:00 UTC`).
 
--- Schedulador: Executar 1x por mês (1º dia)
--- Ir a Database > Webhooks > New webhook
--- ou usar pg_cron extension se disponível
+Também pode correr manualmente quando quiser:
+
 ```
-
+SELECT * FROM public.cleanup_old_invoice_files('6 months'::interval);
 ---
 
 ## ✅ Pronto!
@@ -257,3 +250,4 @@ Copie credenciais para `.env.local` e estamos prontos! 🚀
 ---
 
 **PRÓXIMO PASSO**: Executar `npm run dev`
+```
