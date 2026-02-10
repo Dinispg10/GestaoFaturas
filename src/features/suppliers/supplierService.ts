@@ -3,38 +3,17 @@ import type { Supplier } from '../../types';
 
 interface SupplierInput {
   name: string;
-  email?: string;
-  phone?: string;
   active?: boolean;
 }
 
 interface SupplierDB {
   id: string;
   name: string;
-  email?: string;
-  phone?: string;
   active: boolean;
   created_at: string;
   updated_at: string;
 }
 
-/**
- * Validação de email
- */
-function validateEmail(email: string): boolean {
-  if (!email) return true; // Email é opcional
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
-
-/**
- * Validação de telefone (mínimo 9 dígitos)
- */
-function validatePhone(phone: string): boolean {
-  if (!phone) return true; // Telefone é opcional
-  const cleanPhone = phone.replace(/\D/g, '');
-  return cleanPhone.length >= 9;
-}
 
 /**
  * Converte dados do Supabase (snake_case) para TypeScript (camelCase)
@@ -43,8 +22,6 @@ function mapSupplierFromDB(data: SupplierDB): Supplier {
   return {
     id: data.id,
     name: data.name,
-    email: data.email,
-    phone: data.phone,
     active: data.active,
     created_at: new Date(data.created_at),
   };
@@ -62,14 +39,6 @@ export const supplierService = {
 
     if (!data.name || data.name.trim().length === 0) {
       errors.push('Nome do fornecedor é obrigatório');
-    }
-
-    if (data.email && !validateEmail(data.email)) {
-      errors.push('Email inválido');
-    }
-
-    if (data.phone && !validatePhone(data.phone)) {
-      errors.push('Telefone inválido (mínimo 9 dígitos)');
     }
 
     return {
@@ -112,14 +81,7 @@ export const supplierService = {
    * Atualiza um fornecedor existente
    */
   async updateSupplier(id: string, data: Partial<SupplierInput>): Promise<Supplier> {
-    if (data.email && !validateEmail(data.email)) {
-      throw new Error('Email inválido');
-    }
-
-    if (data.phone && !validatePhone(data.phone)) {
-      throw new Error('Telefone inválido');
-    }
-
+    
     const updateData = {
       ...data,
       updated_at: new Date().toISOString(),
@@ -206,6 +168,23 @@ export const supplierService = {
       return [];
     }
 
+    
+
     return data.map((item: SupplierDB) => mapSupplierFromDB(item));
+  },
+
+   /**
+   * Elimina um fornecedor
+   */
+  async deleteSupplier(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('suppliers')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Erro ao eliminar fornecedor:', error);
+      throw error;
+    }
   },
 };

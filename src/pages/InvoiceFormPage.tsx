@@ -119,7 +119,7 @@ export const InvoiceFormPage: React.FC = () => {
             const uploaded = await supabaseUploadService.uploadInvoiceAttachment(invoice.attachment.file, newId);
             await invoiceService.updateInvoice(newId, {
               attachment: { url: uploaded.url, fileName: uploaded.fileName, size: uploaded.size, storagePath: uploaded.storagePath } as any,
-            }, user?.id || '', 'UPDATED');
+            }, user?.id || '');
           } catch (err) {
             setErrors(['Erro no upload do documento']);
             console.error('Upload error:', err);

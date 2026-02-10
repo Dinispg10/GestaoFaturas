@@ -5,19 +5,19 @@ import { supplierService } from '../features/suppliers/supplierService';
 import { Invoice, InvoiceEvent } from '../types';
 import { Button } from '../components/Button';
 import { Modal } from '../components/Modal';
-import { useIsManager } from '../hooks/useUser';
+import { useAuthUser, useIsManager } from '../hooks/useUser';
 
 export const InvoiceDetailPage: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isManager = useIsManager();
+  const user = useAuthUser();
 
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [events, setEvents] = useState<InvoiceEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('');
-  const [amountPaid, setAmountPaid] = useState(0);
 
   useEffect(() => {
     loadData();
@@ -48,16 +48,30 @@ export const InvoiceDetailPage: React.FC = () => {
   };
 
   const handleMarkAsPaid = async () => {
-    if (!id) return;
+    if (!id || !user?.id || !paymentMethod) return;
 
     try {
-      await invoiceService.markAsPaid(id, paymentMethod, amountPaid);
+      await invoiceService.markAsPaid(id, paymentMethod, user.id);
       setShowPaymentModal(false);
       setPaymentMethod('');
-      setAmountPaid(0);
       loadData();
     } catch (error) {
       console.error('Erro ao marcar como paga:', error);
+    }
+  };
+
+
+  const handleDeleteInvoice = async () => {
+    if (!id) return;
+
+    const shouldDelete = window.confirm('Tem a certeza que quer eliminar esta fatura?');
+    if (!shouldDelete) return;
+
+    try {
+      await invoiceService.deleteInvoice(id);
+      navigate('/faturas');
+    } catch (error) {
+      console.error('Erro ao eliminar fatura:', error);
     }
   };
 
@@ -95,6 +109,9 @@ export const InvoiceDetailPage: React.FC = () => {
               ✏️ Editar
             </Button>
           )}
+          <Button variant="danger" onClick={handleDeleteInvoice}>
+            🗑️ Eliminar
+          </Button>
           <Button variant="secondary" onClick={() => navigate('/faturas')}>
             Voltar
           </Button>
@@ -111,6 +128,10 @@ export const InvoiceDetailPage: React.FC = () => {
           <div className="detail-row">
             <span className="label">Fornecedor:</span>
             <span>{invoice.supplierNameSnapshot}</span>
+          </div>
+          <div className="detail-row">
+            <span className="label">Criado por:</span>
+            <span>{invoice.createdBy}</span>
           </div>
           <div className="detail-row">
             <span className="label">Data:</span>
@@ -217,7 +238,7 @@ export const InvoiceDetailPage: React.FC = () => {
             <Button variant="secondary" onClick={() => setShowPaymentModal(false)}>
               Cancelar
             </Button>
-            <Button variant="success" onClick={handleMarkAsPaid}>
+            <Button variant="success" onClick={handleMarkAsPaid} disabled={!paymentMethod}>
               Confirmar Pagamento
             </Button>
           </div>
@@ -238,16 +259,9 @@ export const InvoiceDetailPage: React.FC = () => {
             <option value="Outro">Outro</option>
           </select>
         </div>
-        <div className="form-group">
-          <label htmlFor="amount">Valor Pago (€) *</label>
-          <input
-            id="amount"
-            type="number"
-            step="0.01"
-            value={amountPaid}
-            onChange={(e) => setAmountPaid(parseFloat(e.target.value) || 0)}
-          />
-        </div>
+       <p className="text-muted">
+          O valor pago será automaticamente o total da fatura.
+        </p>
       </Modal>
 
       <style>{`

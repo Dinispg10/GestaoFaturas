@@ -12,8 +12,6 @@ export const SuppliersPage: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
-    phone: '',
   });
   const [errors, setErrors] = useState<string[]>([]);
 
@@ -41,12 +39,10 @@ export const SuppliersPage: React.FC = () => {
       setEditingId(supplier.id);
       setFormData({
         name: supplier.name,
-        email: supplier.email || '',
-        phone: supplier.phone || '',
       });
     } else {
       setEditingId(null);
-      setFormData({ name: '', email: '', phone: '' });
+      setFormData({ name: '' });
     }
     setErrors([]);
     setShowModal(true);
@@ -80,10 +76,24 @@ export const SuppliersPage: React.FC = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!editingId) return;
+
+    const shouldDelete = window.confirm('Tem a certeza que quer eliminar este fornecedor?');
+    if (!shouldDelete) return;
+
+    try {
+      await supplierService.deleteSupplier(editingId);
+      handleCloseModal();
+      loadSuppliers();
+    } catch (error) {
+      setErrors(['Erro ao eliminar fornecedor']);
+      console.error(error);
+    }
+  };
+
   const columns = [
     { key: 'name' as const, label: 'Nome' },
-    { key: 'email' as const, label: 'Email' },
-    { key: 'phone' as const, label: 'Telefone' },
     {
       key: 'active' as const,
       label: 'Estado',
@@ -121,6 +131,11 @@ export const SuppliersPage: React.FC = () => {
         onClose={handleCloseModal}
         footer={
           <div style={{ display: 'flex', gap: '12px' }}>
+            {editingId && (
+              <Button variant="danger" onClick={handleDelete}>
+                Eliminar
+              </Button>
+            )}
             <Button variant="secondary" onClick={handleCloseModal}>
               Cancelar
             </Button>
@@ -147,26 +162,6 @@ export const SuppliersPage: React.FC = () => {
             type="text"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="phone">Telefone</label>
-          <input
-            id="phone"
-            type="tel"
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
           />
         </div>
 

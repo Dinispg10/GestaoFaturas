@@ -1,6 +1,16 @@
 import { supabase } from '../../lib/supabase';
 import { Invoice, InvoiceEvent, InvoiceStatus } from '../../types';
 
+const INVOICE_SELECT = `
+  *,
+  created_by_user:users!invoices_created_by_fkey(name)
+`;
+
+const EVENT_SELECT = `
+  *,
+  by_user:users!invoice_events_by_user_id_fkey(name)
+`;
+
 export const invoiceService = {
   async createInvoice(
     invoice: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'>,
@@ -36,7 +46,7 @@ export const invoiceService = {
     invoiceId: string,
     invoice: Partial<Invoice>,
     userId: string,
-    eventType: InvoiceEvent['type'],
+    eventType?: InvoiceEvent['type'],
   ): Promise<void> {
     const updateData: Record<string, any> = {};
 
@@ -63,13 +73,25 @@ export const invoiceService = {
 
     if (error) throw error;
 
-    await this.logEvent(invoiceId, eventType, userId);
+   if (eventType) {
+      await this.logEvent(invoiceId, eventType, userId);
+    }
+  },
+
+
+  async deleteInvoice(invoiceId: string): Promise<void> {
+    const { error } = await supabase
+      .from('invoices')
+      .delete()
+      .eq('id', invoiceId);
+
+    if (error) throw error;
   },
 
   async getInvoice(invoiceId: string): Promise<Invoice | null> {
     const { data, error } = await supabase
       .from('invoices')
-      .select('*')
+      .select(INVOICE_SELECT)
       .eq('id', invoiceId)
       .single();
 
@@ -80,7 +102,7 @@ export const invoiceService = {
   async getAllInvoices(): Promise<Invoice[]> {
     const { data, error } = await supabase
       .from('invoices')
-      .select('*')
+      .select(INVOICE_SELECT)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -90,7 +112,7 @@ export const invoiceService = {
   async getInvoicesBySupplierId(supplierId: string): Promise<Invoice[]> {
     const { data, error } = await supabase
       .from('invoices')
-      .select('*')
+      .select(INVOICE_SELECT)
       .eq('supplier_id', supplierId)
       .order('created_at', { ascending: false });
 
@@ -112,8 +134,12 @@ export const invoiceService = {
   async markAsPaid(
     invoiceId: string,
     method: string,
-    amountPaid: number,
+    userId: string,
   ): Promise<void> {
+    const invoice = await this.getInvoice(invoiceId);
+    if (!invoice) {
+      throw new Error('Fatura não encontrada');
+    }
     await this.updateInvoice(
       invoiceId,
       {
@@ -121,10 +147,10 @@ export const invoiceService = {
         payment: {
           paidAt: new Date(),
           method,
-          amountPaid,
+          amountPaid: invoice.totalAmount,
         },
       },
-      'system',
+      userId,
       'PAID',
     );
   },
@@ -141,7 +167,7 @@ export const invoiceService = {
   async getInvoiceEvents(invoiceId: string): Promise<InvoiceEvent[]> {
     const { data, error } = await supabase
       .from('invoice_events')
-      .select('*')
+      .select(EVENT_SELECT)
       .eq('invoice_id', invoiceId)
       .order('created_at', { ascending: false });
 
@@ -150,7 +176,7 @@ export const invoiceService = {
       id: event.id,
       invoiceId: event.invoice_id,
       type: event.type,
-      by: event.by_user_id,
+      by: event.by_user?.name || event.by_user_id,
       at: new Date(event.created_at),
       details: event.details || {},
     }));
@@ -188,7 +214,7 @@ export const invoiceService = {
         storagePath: `invoices/${data.id}/*`,
       } : undefined,
       notes: data.notes,
-      createdBy: data.created_by,
+      createdBy: data.created_by_user?.name || data.created_by,
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at),
       payment: data.payment_paid_at ? {
