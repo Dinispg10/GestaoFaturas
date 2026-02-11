@@ -12,6 +12,7 @@ export const SuppliersPage: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
+    active: true,
   });
   const [errors, setErrors] = useState<string[]>([]);
 
@@ -23,7 +24,7 @@ export const SuppliersPage: React.FC = () => {
     try {
       console.log('[SuppliersPage] Starting loadSuppliers...');
       setLoading(true);
-      const data = await supplierService.getActiveSuppliers();
+      const data = await supplierService.getAllSuppliers();
       console.log('[SuppliersPage] Got suppliers:', data.length);
       setSuppliers(data);
     } catch (error) {
@@ -39,10 +40,11 @@ export const SuppliersPage: React.FC = () => {
       setEditingId(supplier.id);
       setFormData({
         name: supplier.name,
+        active: supplier.active,
       });
     } else {
       setEditingId(null);
-      setFormData({ name: '' });
+      setFormData({ name: '', active: true });
     }
     setErrors([]);
     setShowModal(true);
@@ -51,7 +53,7 @@ export const SuppliersPage: React.FC = () => {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingId(null);
-    setFormData({ name: '' });
+    setFormData({ name: '', active: true });
     setErrors([]);
   };
 
@@ -66,7 +68,7 @@ export const SuppliersPage: React.FC = () => {
       if (editingId) {
         await supplierService.updateSupplier(editingId, formData);
       } else {
-        await supplierService.createSupplier({ ...formData, active: true });
+        await supplierService.createSupplier(formData);
       }
       handleCloseModal();
       loadSuppliers();
@@ -163,6 +165,23 @@ export const SuppliersPage: React.FC = () => {
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="active">Estado</label>
+          <select
+            id="active"
+            value={formData.active ? 'true' : 'false'}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                active: e.target.value === 'true',
+              })
+            }
+          >
+            <option value="true">Ativo</option>
+            <option value="false">Inativo</option>
+          </select>
         </div>
 
         <style>{`

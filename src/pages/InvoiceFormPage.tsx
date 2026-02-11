@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { invoiceService } from '../features/invoices/invoiceService';
 import { supplierService } from '../features/suppliers/supplierService';
@@ -21,6 +21,12 @@ export const InvoiceFormPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+
+    const revokeAttachmentPreviewUrl = useCallback((attachment?: Partial<Invoice['attachment']>) => {
+    if (attachment?.url?.startsWith('blob:')) {
+      URL.revokeObjectURL(attachment.url);
+    }
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -139,6 +145,12 @@ export const InvoiceFormPage: React.FC = () => {
     }
   };
 
+    useEffect(() => {
+    return () => {
+      revokeAttachmentPreviewUrl(invoice.attachment);
+    };
+  }, [invoice.attachment, revokeAttachmentPreviewUrl]);
+
   const canEdit = true;
 
   return (
@@ -146,7 +158,7 @@ export const InvoiceFormPage: React.FC = () => {
       <div className="flex-between mb-4">
         <h2 className="page-title">{id ? 'Editar Fatura' : 'Nova Fatura'}</h2>
         <Button variant="secondary" onClick={() => navigate('/faturas')}>
-          Cancelar
+          Voltar
         </Button>
       </div>
 
@@ -236,26 +248,49 @@ export const InvoiceFormPage: React.FC = () => {
               id="totalAmount"
               type="number"
               step="0.01"
-              value={invoice.totalAmount || 0}
-              onChange={(e) => setInvoice({ ...invoice, totalAmount: parseFloat(e.target.value) })}
+              value={invoice.totalAmount ?? ''}
+              onChange={(e) => {
+                const nextValue = e.target.value;
+                setInvoice({
+                  ...invoice,
+                  totalAmount: nextValue === '' ? undefined : parseFloat(nextValue),
+                });
+              }}
               disabled={!canEdit}
             />
           </div>
         </div>
 
         <div className="form-group">
-          <label htmlFor="attachmentUrl">Referência do Documento (URL) *</label>
+          <label htmlFor="attachment">Documento (Ficheiro) *</label>
           <FileUpload
-            onFileSelected={(file) => setInvoice({ ...invoice, attachment: file })}
+             onFileSelected={(file) => {
+              revokeAttachmentPreviewUrl(invoice.attachment);
+              setInvoice({ ...invoice, attachment: file });
+            }}
             onError={(error) => setErrors([...errors, error])}
             disabled={!canEdit}
           />
           {invoice.attachment && (
             <div className="attachment-info">
               <span>📎 {invoice.attachment.fileName}</span>
-              <a href={invoice.attachment.url} target="_blank" rel="noreferrer">
-                Abrir
-              </a>
+              {invoice.attachment.url && (
+                <a href={invoice.attachment.url} target="_blank" rel="noreferrer">
+                  Abrir
+                </a>
+              )}
+              {canEdit && (
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={() => {
+                    revokeAttachmentPreviewUrl(invoice.attachment);
+                    setInvoice({ ...invoice, attachment: undefined });
+                  }}
+                >
+                  Remover
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -342,6 +377,17 @@ export const InvoiceFormPage: React.FC = () => {
           min-height: 100px;
         }
 
+        .form-group input[type="number"]::-webkit-outer-spin-button,
+        .form-group input[type="number"]::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+
+        .form-group input[type="number"] {
+          -moz-appearance: textfield;
+          appearance: textfield;
+        }
+
         .attachment-info {
           display: flex;
           align-items: center;
@@ -355,6 +401,16 @@ export const InvoiceFormPage: React.FC = () => {
         .attachment-info a {
           color: #0066cc;
           text-decoration: none;
+          font-weight: 500;
+        }
+
+        .link-button {
+          border: none;
+          background: transparent;
+          color: #d32f2f;
+          padding: 0;
+          font-size: 14px;
+          cursor: pointer;
           font-weight: 500;
         }
 

@@ -75,11 +75,11 @@ const uploadWithFallbackBucket = async (storagePath: string, file: File): Promis
 
 export const supabaseUploadService = {
   validateFile(file: File): { valid: boolean; error?: string } {
-    const maxSize = 5 * 1024 * 1024; // 5MB (otimizado para storage)
+    const maxSize = 20 * 1024 * 1024; // 20MB
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 
     if (file.size > maxSize) {
-      return { valid: false, error: 'Ficheiro muito grande (máx 20MB)' };
+     return { valid: false, error: 'Ficheiro muito grande (máx. 20MB)' };
     }
 
     if (!allowedTypes.includes(file.type)) {

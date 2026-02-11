@@ -146,16 +146,10 @@ export const InvoicesPage: React.FC = () => {
       .filter(Boolean)
       .join(' | ');
 
-    const printWindow = window.open('', '_blank');
-
-    if (!printWindow) {
-      window.alert('Não foi possível abrir a janela de impressão. Verifique o bloqueador de pop-ups.');
-      return;
-    }
-
+    
     const reportDate = new Date().toLocaleString('pt-PT');
 
-    printWindow.document.write(`
+    const htmlContent = `
       <!doctype html>
       <html lang="pt">
         <head>
@@ -237,11 +231,40 @@ export const InvoicesPage: React.FC = () => {
           </table>
         </body>
       </html>
-    `);
+      
+      `;
 
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const blobUrl = URL.createObjectURL(blob);
+    const printFrame = document.createElement('iframe');
+
+    printFrame.style.position = 'fixed';
+    printFrame.style.right = '0';
+    printFrame.style.bottom = '0';
+    printFrame.style.width = '0';
+    printFrame.style.height = '0';
+    printFrame.style.border = '0';
+    printFrame.src = blobUrl;
+
+    printFrame.onload = () => {
+      const frameWindow = printFrame.contentWindow;
+
+      if (!frameWindow) {
+        window.alert('Não foi possível iniciar a impressão do relatório.');
+        URL.revokeObjectURL(blobUrl);
+        printFrame.remove();
+        return;
+      }
+
+      frameWindow.focus();
+      frameWindow.print();
+
+      setTimeout(() => {
+        URL.revokeObjectURL(blobUrl);
+        printFrame.remove();
+      }, 1000);
+    };
+document.body.appendChild(printFrame);
   };
 
    const handleDeleteInvoice = async (invoiceId: string) => {

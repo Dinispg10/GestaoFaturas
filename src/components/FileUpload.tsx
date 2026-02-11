@@ -82,7 +82,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
       <div className="file-upload-info">
         <p className="info-text">
-          PDF, JPG, PNG ou WebP (máx. 20MB)
+          PDF, JPG, PNG ou WebP
         </p>
       </div>
     </div>
