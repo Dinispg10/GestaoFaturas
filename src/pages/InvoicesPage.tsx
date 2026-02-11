@@ -429,7 +429,7 @@ document.body.appendChild(printFrame);
     <div>
       <div className="flex-between mb-4">
         <div>
-          <h2 className="page-title">Faturas de Compra</h2>
+          <h2 className="page-title">Faturas</h2>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
           <Button variant="secondary" onClick={handleExportPdf}>

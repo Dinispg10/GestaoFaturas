@@ -26,7 +26,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <img src="/logo.png" alt="Logo" className="header-logo" />
             <div>
               <h1 className="app-title">Farmácia Pinto</h1>
-              <p className="app-subtitle">Registo de Faturas de Compra</p>
             </div>
           </div>
         </div>

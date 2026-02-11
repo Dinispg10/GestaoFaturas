@@ -342,7 +342,7 @@ export const InvoiceDetailPage: React.FC = () => {
         .total-gross {
           font-size: 18px;
           font-weight: 600;
-          color: #0066cc;
+          color: #000000;
         }
 
         .badge {
@@ -423,7 +423,7 @@ export const InvoiceDetailPage: React.FC = () => {
           padding: 12px;
           background: #f9f9f9;
           border-radius: 4px;
-          border-left: 4px solid #0066cc;
+          border-left: 4px solid #4a3f83;
         }
 
         .event-time {
@@ -440,7 +440,7 @@ export const InvoiceDetailPage: React.FC = () => {
         .event-type {
           font-weight: 600;
           margin: 0 0 4px 0;
-          color: #0066cc;
+          color: #4a3f83;
         }
 
         .event-by {
