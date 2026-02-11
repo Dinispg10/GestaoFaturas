@@ -42,7 +42,7 @@ export const LoginPage: React.FC = () => {
       <div className="login-card">
         <div className="login-header">
           <div className="logo-placeholder">
-            <img src="/logo.png" alt="Farmácia Pinto" style={{ maxHeight: '60px' }} />
+             <img src="/logo.png" alt="Farmácia Pinto" className="login-logo" />
           </div>
           <h1>Farmácia Pinto</h1>
           <p>Registo de Faturas de Compra</p>
