@@ -18,13 +18,11 @@ const mapUser = (userData: {
   id: string;
   name: string;
   email: string;
-  role: User['role'];
   active: boolean;
 }): User => ({
   id: userData.id,
   name: userData.name,
   email: userData.email,
-  role: userData.role,
   active: userData.active,
 });
 
@@ -61,7 +59,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             id: authUser.id,
             email: authUser.email,
             name,
-            role: 'staff',
             active: true,
           })
           .select('*')

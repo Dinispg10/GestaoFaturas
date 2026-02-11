@@ -1,15 +1,15 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { UserRole } from '../types';
+
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: UserRole;
 }
 
-export const RequireAuth: React.FC<ProtectedRouteProps> = ({ children, requiredRole }) => {
-  const { isAuthenticated, loading, user } = useAuth();
+export const RequireAuth: React.FC<ProtectedRouteProps> = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+
 
   if (loading) {
     return (
@@ -24,10 +24,6 @@ export const RequireAuth: React.FC<ProtectedRouteProps> = ({ children, requiredR
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
-  }
-
-  if (requiredRole && user?.role !== requiredRole) {
-    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

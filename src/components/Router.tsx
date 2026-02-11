@@ -5,7 +5,6 @@ import { InvoicesPage } from '../pages/InvoicesPage';
 import { InvoiceFormPage } from '../pages/InvoiceFormPage';
 import { InvoiceDetailPage } from '../pages/InvoiceDetailPage';
 import { SuppliersPage } from '../pages/SuppliersPage';
-import { AdminPage } from '../pages/AdminPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { RequireAuth } from './RequireAuth';
 import { Layout } from './Layout';
@@ -104,17 +103,6 @@ export const Router: React.FC = () => {
           <RequireAuth>
             <Layout>
               <SuppliersPage />
-            </Layout>
-          </RequireAuth>
-        }
-      />
-
-      <Route
-        path="/admin"
-        element={
-          <RequireAuth requiredRole="manager">
-            <Layout>
-              <AdminPage />
             </Layout>
           </RequireAuth>
         }

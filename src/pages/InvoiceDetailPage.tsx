@@ -6,12 +6,11 @@ import { Invoice, InvoiceEvent, InvoiceStatus } from '../types';
 import { Button } from '../components/Button';
 import { Modal } from '../components/Modal';
 import { supabaseUploadService } from '../utils/supabaseUploadService';
-import { useAuthUser, useIsManager } from '../hooks/useUser';
+import { useAuthUser } from '../hooks/useUser';
 
 export const InvoiceDetailPage: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const isManager = useIsManager();
   const user = useAuthUser();
 
   const [invoice, setInvoice] = useState<Invoice | null>(null);
@@ -73,7 +72,7 @@ export const InvoiceDetailPage: React.FC = () => {
     }
   };
 
-  const canMarkAsPaid = isManager && invoice?.status === 'submitted';
+   const canMarkAsPaid = invoice?.status === 'submitted';
 
   const statusMap: Record<InvoiceStatus, string> = {
     submitted: 'Submetida para Pagamento',

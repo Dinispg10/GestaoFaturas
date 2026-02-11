@@ -2,7 +2,6 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '../components/Button';
-import { useIsManager } from '../hooks/useUser';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,7 +10,7 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, signOut } = useAuth();
   const location = useLocation();
-  const isManager = useIsManager();
+
 
   const handleLogout = async () => {
     await signOut();
@@ -45,19 +44,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           >
             Fornecedores
           </Link>
-          {isManager && (
-            <Link
-              to="/admin"
-              className={`nav-link ${isActive('/admin') ? 'active' : ''}`}
-            >
-              Admin
-            </Link>
-          )}
         </nav>
 
         <div className="header-right">
           <span className="user-info">
-            {user?.name} {user?.role === 'manager' && '(Gestor)'}
+            {user?.name}
           </span>
           <Button variant="secondary" size="sm" onClick={handleLogout}>
             Sair
