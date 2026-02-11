@@ -120,7 +120,7 @@ export const AdminPage: React.FC = () => {
       key: 'active' as const,
       label: 'Estado',
       render: (value: unknown) => (
-        <span className={`badge ${value ? 'badge-approved' : 'badge-draft'}`}>
+        <span className={`badge ${value ? 'badge-approved' : 'badge-inactive'}`}>
           {value ? 'Ativo' : 'Inativo'}
         </span>
       ),

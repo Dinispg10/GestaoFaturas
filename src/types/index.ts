@@ -15,7 +15,7 @@ export interface Supplier {
   created_at: Date;
 }
 
-export type InvoiceStatus = 'draft' | 'submitted' | 'paid';
+export type InvoiceStatus = 'submitted' | 'paid';
 
 export interface FileAttachment {
   url: string;

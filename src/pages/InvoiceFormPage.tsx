@@ -14,7 +14,7 @@ export const InvoiceFormPage: React.FC = () => {
   const user = useAuthUser();
 
   const [invoice, setInvoice] = useState<Partial<Invoice>>({
-    status: 'draft',
+    status: 'submitted',
     notes: '',
   });
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -54,7 +54,7 @@ export const InvoiceFormPage: React.FC = () => {
     return true;
   };
 
-  const handleSubmit = async (status: 'draft' | 'submitted') => {
+  const handleSubmit = async () => {
     const validationErrors: string[] = [];
 
     if (!invoice.supplierId) validationErrors.push('Fornecedor é obrigatório');
@@ -62,7 +62,7 @@ export const InvoiceFormPage: React.FC = () => {
     if (!invoice.invoiceDate) validationErrors.push('Data da Fatura é obrigatória');
     if (!invoice.totalAmount && invoice.totalAmount !== 0) validationErrors.push('Total é obrigatório');
 
-    if (status === 'submitted' && !invoice.attachment) {
+    if (!invoice.attachment) {
       validationErrors.push('Documento é obrigatório para submeter');
     }
 
@@ -84,7 +84,7 @@ export const InvoiceFormPage: React.FC = () => {
 
       const invoiceData: Partial<Invoice> = {
         ...invoice,
-        status,
+        status: invoice.status === 'paid' ? 'paid' : 'submitted',
         supplierNameSnapshot: supplier?.name || '',
         createdBy: invoice.createdBy || user?.id || '',
       };
@@ -279,22 +279,13 @@ export const InvoiceFormPage: React.FC = () => {
             Cancelar
           </Button>
           {canEdit && (
-            <>
-              <Button
-                variant="secondary"
-                onClick={() => handleSubmit('draft')}
-                loading={loading}
-              >
-                Guardar como Rascunho
-              </Button>
-              <Button
-                variant="primary"
-                onClick={() => handleSubmit('submitted')}
-                loading={loading}
-              >
-                Submeter para Pagamento
-              </Button>
-            </>
+           <Button
+              variant="primary"
+              onClick={() => handleSubmit()}
+              loading={loading}
+            >
+              Submeter para Pagamento
+            </Button>
           )}
         </div>
       </form>

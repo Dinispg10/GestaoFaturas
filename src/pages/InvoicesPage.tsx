@@ -15,7 +15,6 @@ export const InvoicesPage: React.FC = () => {
   const navigate = useNavigate();
 
   const statusOptions = [
-    { value: 'draft', label: 'Rascunho' },
     { value: 'submitted', label: 'Submetida para Pagamento' },
     { value: 'paid', label: 'Paga' },
   ];
@@ -84,7 +83,6 @@ export const InvoicesPage: React.FC = () => {
 
   const getStatusBadge = (status: InvoiceStatus) => {
     const statusMap: Record<InvoiceStatus, string> = {
-      draft: 'Rascunho',
       submitted: 'Submetida para Pagamento',
       paid: 'Paga',
     };
@@ -106,7 +104,6 @@ export const InvoicesPage: React.FC = () => {
 
    const getStatusLabel = (status: InvoiceStatus) => {
     const statusMap: Record<InvoiceStatus, string> = {
-      draft: 'Rascunho',
       submitted: 'Submetida para Pagamento',
       paid: 'Paga',
     };

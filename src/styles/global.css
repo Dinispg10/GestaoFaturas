@@ -396,7 +396,7 @@ body,
   font-weight: 600;
 }
 
-.badge-draft {
+.badge-inactive {
   background-color: #e0e0e0;
   color: #333;
 }

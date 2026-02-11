@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { invoiceService } from '../features/invoices/invoiceService';
 import { supplierService } from '../features/suppliers/supplierService';
-import { Invoice, InvoiceEvent } from '../types';
+import { Invoice, InvoiceEvent, InvoiceStatus } from '../types';
 import { Button } from '../components/Button';
 import { Modal } from '../components/Modal';
 import { supabaseUploadService } from '../utils/supabaseUploadService';
@@ -75,8 +75,7 @@ export const InvoiceDetailPage: React.FC = () => {
 
   const canMarkAsPaid = isManager && invoice?.status === 'submitted';
 
-  const statusMap: Record<string, string> = {
-    draft: 'Rascunho',
+  const statusMap: Record<InvoiceStatus, string> = {
     submitted: 'Submetida para Pagamento',
     paid: 'Paga',
   };
@@ -327,11 +326,6 @@ export const InvoiceDetailPage: React.FC = () => {
           border-radius: 4px;
           font-size: 12px;
           font-weight: 600;
-        }
-
-        .badge-draft {
-          background-color: #e0e0e0;
-          color: #333;
         }
 
         .badge-submitted {
