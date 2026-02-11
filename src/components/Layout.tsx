@@ -118,7 +118,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         }
 
         .nav-link {
-          color: #5f6374;
+          color: #4f2d74;
           text-decoration: none;
           font-weight: 600;
           padding: 8px 14px;

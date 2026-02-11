@@ -86,7 +86,8 @@ export const LoginPage: React.FC = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          min-height: 100vh;
+          height: 100vh;
+          overflow: hidden;
           background: var(--color-primary);
           padding: 20px;
         }
