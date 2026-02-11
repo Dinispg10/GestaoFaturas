@@ -6,11 +6,15 @@ interface DataTableProps<T> {
     key: keyof T;
     label: string;
     render?: (value: unknown, row: T) => React.ReactNode;
+    sortable?: boolean;
   }[];
   data: T[];
   onRowClick?: (row: T) => void;
   loading?: boolean;
   emptyMessage?: string;
+  sortBy?: keyof T;
+  sortDirection?: 'asc' | 'desc';
+  onSort?: (key: keyof T) => void;
 }
 
 export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps<any>>(
@@ -21,6 +25,9 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps<any>>(
       onRowClick,
       loading = false,
       emptyMessage = 'Sem dados para mostrar',
+      sortBy,
+      sortDirection = 'asc',
+      onSort,
     },
     ref
   ) => {
@@ -46,6 +53,25 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps<any>>(
               {columns.map((col) => (
                 <th key={String(col.key)}>{col.label}</th>
               ))}
+              {columns.map((col) => {
+                 const isSorted = sortBy === col.key;
+ 
+                 return (
+                   <th
+                     key={String(col.key)}
+                     className={col.sortable ? 'sortable-header' : undefined}
+                     onClick={() => col.sortable && onSort?.(col.key)}
+                     title={col.sortable ? 'Clique para ordenar' : undefined}
+                   >
+                     <span>{col.label}</span>
+                     {col.sortable ? (
+                       <span className={`sort-indicator ${isSorted ? 'active' : ''}`}>
+                         {isSorted ? (sortDirection === 'asc' ? '▲' : '▼') : '↕'}
+                       </span>
+                     ) : null}
+                   </th>
+                 );
+               })}
             </tr>
           </thead>
             <tbody>

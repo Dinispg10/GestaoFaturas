@@ -52,7 +52,8 @@ export const InvoiceFormPage: React.FC = () => {
     if (invoice.supplierId && invoice.invoiceNumber) {
       const isDuplicate = await invoiceService.checkDuplicateInvoice(
         invoice.supplierId,
-        invoice.invoiceNumber
+        invoice.invoiceNumber,
+        id,
       );
       setShowDuplicateWarning(isDuplicate);
       return !isDuplicate;

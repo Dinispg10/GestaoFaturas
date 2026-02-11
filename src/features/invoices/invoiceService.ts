@@ -147,15 +147,24 @@ export const invoiceService = {
     return data.map(this.mapSupabaseToInvoice);
   },
 
-  async checkDuplicateInvoice(supplierId: string, invoiceNumber: string): Promise<boolean> {
-    const { data } = await supabase
+ async checkDuplicateInvoice(
+    supplierId: string,
+    invoiceNumber: string,
+    excludeInvoiceId?: string,
+  ): Promise<boolean> {
+    let query = supabase
       .from('invoices')
       .select('id')
       .eq('supplier_id', supplierId)
-      .eq('invoice_number', invoiceNumber)
-      .single();
+      .eq('invoice_number', invoiceNumber);
 
-    return data !== null;
+    if (excludeInvoiceId) {
+      query = query.neq('id', excludeInvoiceId);
+    }
+
+    const { data } = await query.limit(1);
+
+    return Boolean(data?.length);
   },
 
   async markAsPaid(

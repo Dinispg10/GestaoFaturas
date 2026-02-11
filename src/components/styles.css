@@ -32,6 +32,24 @@
   color: #4a3167;
 }
 
+.data-table th.sortable-header {
+   cursor: pointer;
+   user-select: none;
+ }
+ 
+ .data-table th.sortable-header span:first-child {
+   margin-right: 6px;
+ }
+ 
+ .sort-indicator {
+   color: #8f7aa8;
+   font-size: 12px;
+ }
+ 
+ .sort-indicator.active {
+   color: #5b2a86;
+ }
+
 .data-table td {
   padding: 12px 14px;
   border-bottom: 1px solid #f0edf7;

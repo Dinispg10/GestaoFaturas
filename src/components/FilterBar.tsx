@@ -55,7 +55,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange })
             )}
           </div>
         ))}
-        <button onClick={handleClear} className="btn btn-secondary btn-sm">
+        <button
+          onClick={handleClear}
+          className="btn btn-secondary filter-clear-btn"
+        >
           Limpar Filtros
         </button>
       </div>

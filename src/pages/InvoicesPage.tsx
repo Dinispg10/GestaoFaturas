@@ -11,7 +11,8 @@ export const InvoicesPage: React.FC = () => {
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
-  const [openActionsFor, setOpenActionsFor] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<keyof Invoice>('invoiceDate');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const navigate = useNavigate();
 
   const statusOptions = [
@@ -31,10 +32,35 @@ export const InvoicesPage: React.FC = () => {
       .sort((a, b) => a.label.localeCompare(b.label, 'pt-PT'));
   }, [invoices]);
 
+   const monthYearOptions = useMemo(() => {
+    const monthFormatter = new Intl.DateTimeFormat('pt-PT', { month: 'long', year: 'numeric' });
+    const uniqueMonths = new Set<string>();
+
+    invoices.forEach((invoice) => {
+      const date = new Date(invoice.invoiceDate);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      uniqueMonths.add(`${year}-${month}`);
+    });
+
+    return Array.from(uniqueMonths)
+      .sort((a, b) => b.localeCompare(a))
+      .map((value) => {
+        const [year, month] = value.split('-').map(Number);
+        const labelDate = new Date(year, month - 1, 1);
+        const label = monthFormatter.format(labelDate);
+        return {
+          value,
+          label: label.charAt(0).toUpperCase() + label.slice(1),
+        };
+      });
+  }, [invoices]);
+
   const filterConfig = [
     { key: 'supplierId', label: 'Fornecedor', type: 'select' as const, options: supplierOptions },
     { key: 'status', label: 'Estado', type: 'select' as const, options: statusOptions },
-    { key: 'search', label: 'Pesquisar', type: 'text' as const, placeholder: 'Nº Fatura ou Fornecedor' },
+    { key: 'monthYear', label: 'Mês/Ano', type: 'select' as const, options: monthYearOptions },
+    { key: 'search', label: 'Pesquisar', type: 'text' as const, placeholder: 'Nº Fatura' },
   ];
 
   useEffect(() => {
@@ -68,6 +94,15 @@ export const InvoicesPage: React.FC = () => {
       result = result.filter((inv) => inv.status === newFilters.status);
     }
 
+    if (newFilters.monthYear) {
+      result = result.filter((inv) => {
+        const date = new Date(inv.invoiceDate);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        return `${year}-${month}` === newFilters.monthYear;
+      });
+    }
+
     if (newFilters.search) {
       const searchLower = newFilters.search.toLowerCase();
       result = result.filter(
@@ -80,6 +115,55 @@ export const InvoicesPage: React.FC = () => {
     setActiveFilters(newFilters);
     setFilteredInvoices(result);
   };
+
+  const sortedInvoices = useMemo(() => {
+     const dateFields: Array<keyof Invoice> = ['invoiceDate', 'dueDate', 'updatedAt', 'createdAt'];
+ 
+     const sorted = [...filteredInvoices].sort((a, b) => {
+       const valueA = a[sortBy];
+       const valueB = b[sortBy];
+ 
+       if (valueA == null && valueB == null) {
+         return 0;
+       }
+ 
+       if (valueA == null) {
+         return sortDirection === 'asc' ? -1 : 1;
+       }
+ 
+       if (valueB == null) {
+         return sortDirection === 'asc' ? 1 : -1;
+       }
+ 
+       if (dateFields.includes(sortBy)) {
+         const dateA = new Date(valueA as string | number | Date).getTime();
+         const dateB = new Date(valueB as string | number | Date).getTime();
+         return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+       }
+ 
+       if (typeof valueA === 'number' && typeof valueB === 'number') {
+         return sortDirection === 'asc' ? valueA - valueB : valueB - valueA;
+       }
+ 
+       const textA = String(valueA).toLowerCase();
+       const textB = String(valueB).toLowerCase();
+       const compareResult = textA.localeCompare(textB, 'pt-PT');
+ 
+       return sortDirection === 'asc' ? compareResult : -compareResult;
+     });
+ 
+     return sorted;
+   }, [filteredInvoices, sortBy, sortDirection]);
+ 
+   const handleSort = (columnKey: keyof Invoice) => {
+     if (sortBy === columnKey) {
+       setSortDirection((prevDirection) => (prevDirection === 'asc' ? 'desc' : 'asc'));
+       return;
+     }
+ 
+     setSortBy(columnKey);
+     setSortDirection('asc');
+   };
 
   const getStatusBadge = (status: InvoiceStatus) => {
     const statusMap: Record<InvoiceStatus, string> = {
@@ -140,6 +224,9 @@ export const InvoicesPage: React.FC = () => {
         : null,
       activeFilters.status
         ? `Estado: ${statusOptions.find((opt) => opt.value === activeFilters.status)?.label ?? 'N/A'}`
+        : null,
+      activeFilters.monthYear
+        ? `Mês/Ano: ${monthYearOptions.find((opt) => opt.value === activeFilters.monthYear)?.label ?? activeFilters.monthYear}`
         : null,
       activeFilters.search ? `Pesquisa: ${activeFilters.search}` : null,
     ]
@@ -271,19 +358,23 @@ document.body.appendChild(printFrame);
   const columns = [
     {
       key: 'supplierNameSnapshot' as const,
+      sortable: true,
       label: 'Fornecedor',
     },
     {
       key: 'invoiceNumber' as const,
+      sortable: true,
       label: 'Nº Fatura',
     },
     {
       key: 'invoiceDate' as const,
+      sortable: true,
       label: 'Data',
       render: (value: unknown) => formatDate(value as Date),
     },
     {
       key: 'dueDate' as const,
+      sortable: true,
       label: 'Vencimento',
       render: (value: unknown) => {
         const dueDate = new Date(value as Date);
@@ -301,20 +392,24 @@ document.body.appendChild(printFrame);
     },
     {
       key: 'totalAmount' as const,
+      sortable: true,
       label: 'Total',
       render: (value: unknown) => formatCurrency(value as number),
     },
     {
       key: 'status' as const,
+      sortable: true,
       label: 'Estado',
       render: (value: unknown) => getStatusBadge(value as InvoiceStatus),
     },
     {
       key: 'createdBy' as const,
+      sortable: true,
       label: 'Criado por',
     },
     {
       key: 'updatedAt' as const,
+      sortable: true,
       label: 'Atualizado em',
       render: (value: unknown) => formatDate(value as Date),
     },
@@ -326,6 +421,7 @@ document.body.appendChild(printFrame);
         <div>
           <h2 className="page-title">Faturas de Compra</h2>
           <p className="page-subtitle">Total: {filteredInvoices.length} faturas</p>
+          <p className="page-subtitle">Total: {filteredInvoices.length} faturas · Clique no cabeçalho para ordenar</p>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
           <Button variant="secondary" onClick={handleExportPdf}>
@@ -341,8 +437,11 @@ document.body.appendChild(printFrame);
 
       <DataTable
         columns={columns}
-        data={filteredInvoices}
+        data={sortedInvoices}
         loading={loading}
+        sortBy={sortBy}
+        sortDirection={sortDirection}
+        onSort={(key) => handleSort(key as keyof Invoice)}
         onRowClick={(invoice) => navigate(`/faturas/${invoice.id}`)}
         emptyMessage="Nenhuma fatura encontrada"
       />
