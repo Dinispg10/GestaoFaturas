@@ -326,11 +326,6 @@ export const InvoiceFormPage: React.FC = () => {
           {invoice.attachment && (
             <div className="attachment-info">
                <span>{invoice.attachment.fileName}</span>
-              {invoice.attachment.url && (
-                <a href={invoice.attachment.url} target="_blank" rel="noreferrer">
-                  Abrir
-                </a>
-              )}
               {canEdit && (
                 <button
                   type="button"
@@ -443,18 +438,19 @@ export const InvoiceFormPage: React.FC = () => {
 
         .attachment-info {
           display: flex;
-          align-items: center;
-          gap: 12px;
+          justify-content: space-between;
+          align-items: flex-end;
+          gap: 16px;
           padding: 8px 12px;
           background-color: #e8f4f8;
           border-radius: 4px;
           margin-bottom: 8px;
         }
 
-        .attachment-info a {
-          color: #0066cc;
-          text-decoration: none;
-          font-weight: 500;
+        .attachment-name {
+          flex: 1;
+          min-width: 0;
+          word-break: break-word;
         }
 
         .link-button {
@@ -464,7 +460,10 @@ export const InvoiceFormPage: React.FC = () => {
           padding: 0;
           font-size: 14px;
           cursor: pointer;
-          font-weight: 500;
+          line-height: 1.2;
+          font-weight: 700;
+          margin-left: auto;
+          white-space: nowrap;
         }
 
         .form-actions {
