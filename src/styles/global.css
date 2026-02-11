@@ -157,7 +157,7 @@ body,
 
 /* Filter Bar */
 .filter-bar {
-  background: white;
+  background: #dfd6ef;
   padding: 16px;
   border-radius: 8px;
   margin-bottom: 20px;
@@ -190,6 +190,10 @@ body,
   font-size: 14px;
 }
 
+.filter-clear-btn {
+  background-color: #4a3f83;
+  color: #ffffff;
+}
 /* Modal */
 .modal-overlay {
   position: fixed;

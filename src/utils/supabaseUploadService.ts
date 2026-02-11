@@ -4,8 +4,8 @@ import { FileAttachment } from '../types';
 const DEFAULT_STORAGE_BUCKET = 'invoices';
 const CONFIGURED_STORAGE_BUCKET = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || DEFAULT_STORAGE_BUCKET;
 
-const getBucketCandidates = (): string[] => {
-  return Array.from(new Set([CONFIGURED_STORAGE_BUCKET, DEFAULT_STORAGE_BUCKET]));
+const getBucketCandidates = (preferredBucket?: string | null): string[] => {
+  return Array.from(new Set([preferredBucket, CONFIGURED_STORAGE_BUCKET, DEFAULT_STORAGE_BUCKET].filter(Boolean))) as string[];
 };
 
 const extractStoragePathFromUrl = (url?: string): string | null => {
@@ -16,6 +16,20 @@ const extractStoragePathFromUrl = (url?: string): string | null => {
   try {
     const parsed = new URL(url);
     const match = parsed.pathname.match(/\/storage\/v1\/object\/(?:public|sign)\/[^/]+\/(.+)$/);
+    return match?.[1] ? decodeURIComponent(match[1]) : null;
+  } catch {
+    return null;
+  }
+};
+
+const extractBucketFromUrl = (url?: string): string | null => {
+  if (!url || url.startsWith('blob:')) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(url);
+    const match = parsed.pathname.match(/\/storage\/v1\/object\/(?:public|sign)\/([^/]+)\/.+$/);
     return match?.[1] ? decodeURIComponent(match[1]) : null;
   } catch {
     return null;
@@ -41,6 +55,15 @@ const isBucketNotFound = (error: unknown): boolean => {
   return maybeMessage.toLowerCase().includes('bucket not found');
 };
 
+const isObjectNotFound = (error: unknown): boolean => {
+  if (!error || typeof error !== 'object') return false;
+
+  const maybeMessage = 'message' in error ? String((error as { message: unknown }).message).toLowerCase() : '';
+  const maybeStatusCode = 'statusCode' in error ? String((error as { statusCode: unknown }).statusCode) : '';
+
+  return maybeStatusCode === '404' || maybeMessage.includes('not found') || maybeMessage.includes('does not exist');
+};
+
 const sanitizeFileName = (fileName: string): string => {
   const cleaned = fileName
     .trim()
@@ -56,7 +79,7 @@ const uploadWithFallbackBucket = async (storagePath: string, file: File): Promis
   let bucketNotFoundCount = 0;
 
   for (const bucket of getBucketCandidates()) {
-    const { error } = await supabase.storage.from(bucket).upload(storagePath, file, { upsert: false });
+    const { error } = await supabase.storage.from(bucket).upload(storagePath, file, { upsert: true });
 
     if (!error) {
       return bucket;

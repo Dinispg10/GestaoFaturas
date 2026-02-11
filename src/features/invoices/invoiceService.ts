@@ -77,6 +77,18 @@ export const invoiceService = {
     eventType?: InvoiceEvent['type'],
   ): Promise<void> {
     const updateData: Record<string, any> = {};
+    let existingAttachmentUrl: string | null = null;
+
+    if (invoice.attachment !== undefined) {
+      const { data: existingInvoice, error: existingInvoiceError } = await supabase
+        .from('invoices')
+        .select('attachment_url')
+        .eq('id', invoiceId)
+        .single();
+
+      if (existingInvoiceError) throw existingInvoiceError;
+      existingAttachmentUrl = existingInvoice?.attachment_url || null;
+    }
 
     if (invoice.supplierNameSnapshot) updateData.supplier_name_snapshot = invoice.supplierNameSnapshot;
     if (invoice.invoiceNumber) updateData.invoice_number = invoice.invoiceNumber;
@@ -105,6 +117,21 @@ export const invoiceService = {
 
     if (error) throw error;
 
+    if (invoice.attachment !== undefined && existingAttachmentUrl) {
+      const existingStoragePath = extractStoragePathFromAttachmentUrl(existingAttachmentUrl);
+      const nextStoragePath = invoice.attachment ? invoice.attachment.storagePath || '' : '';
+      const shouldDeletePreviousAttachment = invoice.attachment === null
+        || (Boolean(nextStoragePath) && nextStoragePath !== existingStoragePath);
+
+      if (shouldDeletePreviousAttachment) {
+        await supabaseUploadService.deleteAttachment({
+          url: existingAttachmentUrl,
+          storagePath: existingStoragePath,
+        });
+      }
+    }
+
+    
    if (eventType) {
       await this.logEvent(invoiceId, eventType, userId);
     }

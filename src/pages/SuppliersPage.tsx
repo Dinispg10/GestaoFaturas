@@ -112,7 +112,6 @@ export const SuppliersPage: React.FC = () => {
       <div className="flex-between mb-4">
         <div>
           <h2 className="page-title">Fornecedores</h2>
-          <p className="page-subtitle">Total: {suppliers.length} fornecedores</p>
         </div>
         <Button variant="primary" onClick={() => handleOpenModal()}>
           + Novo Fornecedor
