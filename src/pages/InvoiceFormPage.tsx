@@ -174,7 +174,7 @@ export const InvoiceFormPage: React.FC = () => {
 
       {showDuplicateWarning && (
         <div className="alert alert-info">
-          ⚠️ Já existe uma fatura com este número para este fornecedor. Verifique antes de submeter para pagamento.
+          Já existe uma fatura com este número para este fornecedor. Verifique antes de submeter para pagamento.
         </div>
       )}
 
@@ -273,7 +273,7 @@ export const InvoiceFormPage: React.FC = () => {
           />
           {invoice.attachment && (
             <div className="attachment-info">
-              <span>📎 {invoice.attachment.fileName}</span>
+               <span>{invoice.attachment.fileName}</span>
               {invoice.attachment.url && (
                 <a href={invoice.attachment.url} target="_blank" rel="noreferrer">
                   Abrir

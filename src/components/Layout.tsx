@@ -134,7 +134,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         .nav-link.active {
           color: #fff;
-          background: linear-gradient(135deg, #5b2a86 0%, #1f6f5f 100%);
+          background: var(--color-primary);
           box-shadow: 0 8px 14px rgba(79, 45, 116, 0.22);
         }
 

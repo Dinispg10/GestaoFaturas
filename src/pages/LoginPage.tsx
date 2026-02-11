@@ -79,10 +79,6 @@ export const LoginPage: React.FC = () => {
             Entrar
           </Button>
         </form>
-
-        <div className="login-footer">
-          <p>© 2026 Farmácia Pinto. Todos os direitos reservados.</p>
-        </div>
       </div>
 
       <style>{`
@@ -91,12 +87,12 @@ export const LoginPage: React.FC = () => {
           align-items: center;
           justify-content: center;
           min-height: 100vh;
-          background: linear-gradient(135deg, #2c7c67 0%, #5b2a86 55%, #37244f 100%);
+          background: var(--color-primary);
           padding: 20px;
         }
 
         .login-card {
-                    background: rgba(255, 255, 255, 0.95);
+          background: rgba(255, 255, 255, 0.95);
           border-radius: 18px;
           border: 1px solid #ddd8e8;
           box-shadow: 0 22px 45px rgba(29, 20, 45, 0.28);

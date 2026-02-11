@@ -7,6 +7,7 @@ import { Button } from '../components/Button';
 import { Modal } from '../components/Modal';
 import { supabaseUploadService } from '../utils/supabaseUploadService';
 import { useAuthUser } from '../hooks/useUser';
+import { openUrl } from '@tauri-apps/plugin-opener';
 
 export const InvoiceDetailPage: React.FC = () => {
   const { id } = useParams();
@@ -61,11 +62,30 @@ export const InvoiceDetailPage: React.FC = () => {
   };
 
 
+    const handleDeleteInvoice = async () => {
+    if (!id) return;
+
+    const shouldDelete = window.confirm('Tem a certeza que quer eliminar esta fatura?');
+    if (!shouldDelete) return;
+
+    try {
+      await invoiceService.deleteInvoice(id);
+      navigate('/faturas');
+    } catch (error) {
+      console.error('Erro ao eliminar fatura:', error);
+    }
+  };
+
   const handleDownloadAttachment = async () => {
     if (!invoice?.attachment) return;
 
     try {
       const downloadUrl = await supabaseUploadService.getDownloadUrl(invoice.attachment);
+       try {
+        await openUrl(downloadUrl);
+      } catch {
+        window.open(downloadUrl, '_blank', 'noopener,noreferrer');
+      }
       window.open(downloadUrl, '_blank');
     } catch (error) {
       console.error('Erro ao abrir documento:', error);
@@ -101,6 +121,12 @@ export const InvoiceDetailPage: React.FC = () => {
         <div className="flex gap-3">
           <Button variant="secondary" onClick={() => navigate('/faturas')}>
             Voltar
+          </Button>
+          <Button variant="primary" onClick={() => navigate(`/faturas/${invoice.id}/editar`)}>
+            Editar
+          </Button>
+          <Button variant="danger" onClick={() => void handleDeleteInvoice()}>
+            Eliminar
           </Button>
         </div>
       </div>
@@ -140,12 +166,12 @@ export const InvoiceDetailPage: React.FC = () => {
           <h3>Documento</h3>
           {invoice.attachment ? (
             <div className="attachment-section">
-              <p className="attachment-name">📎 {invoice.attachment.fileName}</p>
+              <p className="attachment-name">{invoice.attachment.fileName}</p>
               <Button
                 variant="primary"
                 onClick={() => void handleDownloadAttachment()}
               >
-                📥 Descarregar
+                Descarregar
               </Button>
             </div>
           ) : (
@@ -184,7 +210,7 @@ export const InvoiceDetailPage: React.FC = () => {
       <div className="actions-section">
         {canMarkAsPaid && (
           <Button variant="success" onClick={() => setShowPaymentModal(true)}>
-            💳 Marcar como Paga
+            Marcar como Paga
           </Button>
         )}
       </div>
