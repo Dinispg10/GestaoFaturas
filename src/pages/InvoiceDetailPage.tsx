@@ -335,8 +335,8 @@ export const InvoiceDetailPage: React.FC = () => {
         }
 
         .badge-submitted {
-          background-color: #fff3cd;
-          color: #856404;
+          background-color: #f8d7da;
+          color: #721c24;
         }
 
         .badge-approved {
@@ -350,8 +350,8 @@ export const InvoiceDetailPage: React.FC = () => {
         }
 
         .badge-paid {
-          background-color: #d1ecf1;
-          color: #0c5460;
+          background-color: #d4edda;
+          color: #155724;
         }
 
         .attachment-section {

@@ -365,7 +365,7 @@ export const InvoicesPage: React.FC = () => {
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
           <Button variant="secondary" onClick={handleExportPdf}>
-            Exportar PDF com filtros
+            Exportar PDF
           </Button>
           <Button variant="primary" onClick={() => navigate('/faturas/nova')}>
             + Nova Fatura
