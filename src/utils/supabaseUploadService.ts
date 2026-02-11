@@ -22,7 +22,12 @@ const extractStoragePathFromUrl = (url?: string): string | null => {
   }
 };
 
-const resolveStoragePath = (attachment: FileAttachment): string | null => {
+const resolveStoragePath = (attachment?: Partial<FileAttachment>): string | null => {
+
+  if (!attachment) {
+    return null;
+  }
+
   if (attachment.storagePath && !attachment.storagePath.includes('*')) {
     return attachment.storagePath;
   }
@@ -46,21 +51,13 @@ const sanitizeFileName = (fileName: string): string => {
   return cleaned || `documento-${Date.now()}`;
 };
 
-const createUniqueStorageName = (fileName: string): string => {
-  const extIndex = fileName.lastIndexOf('.');
-  const baseName = extIndex > 0 ? fileName.slice(0, extIndex) : fileName;
-  const extension = extIndex > 0 ? fileName.slice(extIndex) : '';
-  const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-
-  return `${baseName}-${uniqueSuffix}${extension}`;
-};
 
 const uploadWithFallbackBucket = async (storagePath: string, file: File): Promise<string> => {
   let bucketNotFoundCount = 0;
 
   for (const bucket of getBucketCandidates()) {
     const { error } = await supabase.storage.from(bucket).upload(storagePath, file, { upsert: false });
-    
+
     if (!error) {
       return bucket;
     }
@@ -191,5 +188,13 @@ export const supabaseUploadService = {
         }
       }
     }
+  },
+async deleteAttachment(attachment?: Partial<FileAttachment>): Promise<void> {
+    const storagePath = resolveStoragePath(attachment);
+    if (!storagePath) {
+      return;
+    }
+
+    await this.deleteFile(storagePath);
   },
 };

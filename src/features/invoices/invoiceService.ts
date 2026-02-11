@@ -1,5 +1,6 @@
 import { supabase } from '../../lib/supabase';
 import { Invoice, InvoiceEvent, InvoiceStatus } from '../../types';
+import { supabaseUploadService } from '../../utils/supabaseUploadService';
 
 const INVOICE_SELECT = `
   *,
@@ -111,6 +112,21 @@ export const invoiceService = {
 
 
   async deleteInvoice(invoiceId: string): Promise<void> {
+    const { data: existingInvoice, error: fetchError } = await supabase
+      .from('invoices')
+      .select('attachment_url')
+      .eq('id', invoiceId)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    if (existingInvoice?.attachment_url) {
+      await supabaseUploadService.deleteAttachment({
+        url: existingInvoice.attachment_url,
+        storagePath: extractStoragePathFromAttachmentUrl(existingInvoice.attachment_url),
+      });
+    }
+    
     const { error } = await supabase
       .from('invoices')
       .delete()

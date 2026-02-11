@@ -97,9 +97,13 @@ export const InvoiceFormPage: React.FC = () => {
 
       if (id) {
         const attachmentWasRemoved = !invoice.attachment && Boolean(initialAttachment);
+        const attachmentWasReplaced = Boolean(invoice.attachment?.file && initialAttachment);
         // If a new local file was selected, upload it first
         if (invoice.attachment && invoice.attachment.file) {
           try {
+            if (attachmentWasReplaced) {
+              await supabaseUploadService.deleteAttachment(initialAttachment);
+            }
             const uploaded = await supabaseUploadService.uploadInvoiceAttachment(invoice.attachment.file, id);
             invoiceData.attachment = {
               url: uploaded.url,
@@ -115,9 +119,8 @@ export const InvoiceFormPage: React.FC = () => {
           }
         }
 
-        if (attachmentWasRemoved) {
-          invoiceData.attachment = null;
-        }
+         if (attachmentWasRemoved) {
+          await supabaseUploadService.deleteAttachment(initialAttachment);}
 
         await invoiceService.updateInvoice(id, invoiceData, user?.id || '', 'UPDATED');
 
