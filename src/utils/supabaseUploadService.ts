@@ -22,19 +22,6 @@ const extractStoragePathFromUrl = (url?: string): string | null => {
   }
 };
 
-const extractBucketFromUrl = (url?: string): string | null => {
-  if (!url || url.startsWith('blob:')) {
-    return null;
-  }
-
-  try {
-    const parsed = new URL(url);
-    const match = parsed.pathname.match(/\/storage\/v1\/object\/(?:public|sign)\/([^/]+)\/.+$/);
-    return match?.[1] ? decodeURIComponent(match[1]) : null;
-  } catch {
-    return null;
-  }
-};
 
 const resolveStoragePath = (attachment?: Partial<FileAttachment>): string | null => {
 
@@ -55,14 +42,6 @@ const isBucketNotFound = (error: unknown): boolean => {
   return maybeMessage.toLowerCase().includes('bucket not found');
 };
 
-const isObjectNotFound = (error: unknown): boolean => {
-  if (!error || typeof error !== 'object') return false;
-
-  const maybeMessage = 'message' in error ? String((error as { message: unknown }).message).toLowerCase() : '';
-  const maybeStatusCode = 'statusCode' in error ? String((error as { statusCode: unknown }).statusCode) : '';
-
-  return maybeStatusCode === '404' || maybeMessage.includes('not found') || maybeMessage.includes('does not exist');
-};
 
 const sanitizeFileName = (fileName: string): string => {
   const cleaned = fileName
