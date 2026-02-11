@@ -50,45 +50,42 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps<any>>(
           <table className="data-table">
             <thead>
             <tr>
-              {columns.map((col) => (
-                <th key={String(col.key)}>{col.label}</th>
-              ))}
-              {columns.map((col) => {
-                 const isSorted = sortBy === col.key;
- 
-                 return (
-                   <th
-                     key={String(col.key)}
-                     className={col.sortable ? 'sortable-header' : undefined}
-                     onClick={() => col.sortable && onSort?.(col.key)}
-                     title={col.sortable ? 'Clique para ordenar' : undefined}
-                   >
-                     <span>{col.label}</span>
-                     {col.sortable ? (
-                       <span className={`sort-indicator ${isSorted ? 'active' : ''}`}>
-                         {isSorted ? (sortDirection === 'asc' ? '▲' : '▼') : '↕'}
-                       </span>
-                     ) : null}
-                   </th>
-                 );
-               })}
-            </tr>
-          </thead>
-            <tbody>
-            {data.map((row, rowIndex) => (
-              <tr
-                key={rowIndex}
-                onClick={() => onRowClick?.(row)}
-                className={onRowClick ? 'cursor-pointer hover:bg-gray-50' : ''}
-              >
-                {columns.map((col) => (
-                  <td key={String(col.key)}>
-                    {col.render ? col.render(row[col.key], row) : String(row[col.key])}
-                  </td>
-                ))}
+                {columns.map((col) => {
+                  const isSorted = sortBy === col.key;
+
+                  return (
+                    <th
+                      key={String(col.key)}
+                      className={col.sortable ? 'sortable-header' : undefined}
+                      onClick={() => col.sortable && onSort?.(col.key)}
+                      title={col.sortable ? 'Clique para ordenar' : undefined}
+                    >
+                      <span>{col.label}</span>
+                      {col.sortable ? (
+                        <span className={`sort-indicator ${isSorted ? 'active' : ''}`}>
+                          {isSorted ? (sortDirection === 'asc' ? '▲' : '▼') : '↕'}
+                        </span>
+                      ) : null}
+                    </th>
+                  );
+                })}
               </tr>
-            ))}
-         </tbody>
+           </thead>
+            <tbody>
+              {data.map((row, rowIndex) => (
+                <tr
+                  key={rowIndex}
+                  onClick={() => onRowClick?.(row)}
+                  className={onRowClick ? 'cursor-pointer hover:bg-gray-50' : ''}
+                >
+                  {columns.map((col) => (
+                    <td key={String(col.key)}>
+                      {col.render ? col.render(row[col.key], row) : String(row[col.key])}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
           </table>
         </div>
       </div>

@@ -11,8 +11,8 @@ export const InvoicesPage: React.FC = () => {
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
-  const [sortBy, setSortBy] = useState<keyof Invoice>('invoiceDate');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [sortBy, setSortBy] = useState<keyof Invoice | undefined>(undefined);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const navigate = useNavigate();
 
   const statusOptions = [
@@ -117,53 +117,63 @@ export const InvoicesPage: React.FC = () => {
   };
 
   const sortedInvoices = useMemo(() => {
-     const dateFields: Array<keyof Invoice> = ['invoiceDate', 'dueDate', 'updatedAt', 'createdAt'];
- 
-     const sorted = [...filteredInvoices].sort((a, b) => {
-       const valueA = a[sortBy];
-       const valueB = b[sortBy];
- 
-       if (valueA == null && valueB == null) {
-         return 0;
-       }
- 
-       if (valueA == null) {
-         return sortDirection === 'asc' ? -1 : 1;
-       }
- 
-       if (valueB == null) {
-         return sortDirection === 'asc' ? 1 : -1;
-       }
- 
-       if (dateFields.includes(sortBy)) {
-         const dateA = new Date(valueA as string | number | Date).getTime();
-         const dateB = new Date(valueB as string | number | Date).getTime();
-         return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
-       }
- 
-       if (typeof valueA === 'number' && typeof valueB === 'number') {
-         return sortDirection === 'asc' ? valueA - valueB : valueB - valueA;
-       }
- 
-       const textA = String(valueA).toLowerCase();
-       const textB = String(valueB).toLowerCase();
-       const compareResult = textA.localeCompare(textB, 'pt-PT');
- 
-       return sortDirection === 'asc' ? compareResult : -compareResult;
-     });
- 
-     return sorted;
-   }, [filteredInvoices, sortBy, sortDirection]);
- 
-   const handleSort = (columnKey: keyof Invoice) => {
-     if (sortBy === columnKey) {
-       setSortDirection((prevDirection) => (prevDirection === 'asc' ? 'desc' : 'asc'));
-       return;
-     }
- 
-     setSortBy(columnKey);
-     setSortDirection('asc');
-   };
+    if (!sortBy) {
+      return filteredInvoices;
+    }
+
+    const dateFields: Array<keyof Invoice> = ['invoiceDate', 'dueDate', 'updatedAt', 'createdAt'];
+
+    const sorted = [...filteredInvoices].sort((a, b) => {
+      const valueA = a[sortBy];
+      const valueB = b[sortBy];
+
+      if (valueA == null && valueB == null) {
+        return 0;
+      }
+
+      if (valueA == null) {
+        return sortDirection === 'asc' ? -1 : 1;
+      }
+
+      if (valueB == null) {
+        return sortDirection === 'asc' ? 1 : -1;
+      }
+
+      if (dateFields.includes(sortBy)) {
+        const dateA = new Date(valueA as string | number | Date).getTime();
+        const dateB = new Date(valueB as string | number | Date).getTime();
+        return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+      }
+
+      if (typeof valueA === 'number' && typeof valueB === 'number') {
+        return sortDirection === 'asc' ? valueA - valueB : valueB - valueA;
+      }
+
+      const textA = String(valueA).toLowerCase();
+      const textB = String(valueB).toLowerCase();
+      const compareResult = textA.localeCompare(textB, 'pt-PT');
+
+      return sortDirection === 'asc' ? compareResult : -compareResult;
+    });
+
+    return sorted;
+  }, [filteredInvoices, sortBy, sortDirection]);
+
+  const handleSort = (columnKey: keyof Invoice) => {
+    if (sortBy !== columnKey) {
+      setSortBy(columnKey);
+      setSortDirection('asc');
+      return;
+    }
+
+    if (sortDirection === 'asc') {
+      setSortDirection('desc');
+      return;
+    }
+
+    setSortBy(undefined);
+    setSortDirection('asc');
+  };
 
   const getStatusBadge = (status: InvoiceStatus) => {
     const statusMap: Record<InvoiceStatus, string> = {
@@ -420,8 +430,6 @@ document.body.appendChild(printFrame);
       <div className="flex-between mb-4">
         <div>
           <h2 className="page-title">Faturas de Compra</h2>
-          <p className="page-subtitle">Total: {filteredInvoices.length} faturas</p>
-          <p className="page-subtitle">Total: {filteredInvoices.length} faturas · Clique no cabeçalho para ordenar</p>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
           <Button variant="secondary" onClick={handleExportPdf}>
