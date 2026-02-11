@@ -60,6 +60,14 @@ export const InvoicesPage: React.FC = () => {
     }
   };
 
+   const isValidDateFilter = (value?: string) => Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
+
+  const parseDateFilter = (value: string) => {
+    const parsedDate = new Date(value);
+    return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+  };
+
+
   const applyFilters = (newFilters: Record<string, string>) => {
     let result = invoices;
 
@@ -71,22 +79,27 @@ export const InvoicesPage: React.FC = () => {
       result = result.filter((inv) => inv.status === newFilters.status);
     }
 
-    if (newFilters.dateFrom) {
-      result = result.filter((inv) => {
-        const invoiceDate = new Date(inv.invoiceDate);
-        const fromDate = new Date(newFilters.dateFrom);
-        fromDate.setHours(0, 0, 0, 0);
-        return invoiceDate >= fromDate;
-      });
-    }
+    if (isValidDateFilter(newFilters.dateFrom)) {
+      const fromDate = parseDateFilter(newFilters.dateFrom);
 
-    if (newFilters.dateTo) {
-      result = result.filter((inv) => {
-        const invoiceDate = new Date(inv.invoiceDate);
-        const toDate = new Date(newFilters.dateTo);
+      if (fromDate) {
+        fromDate.setHours(0, 0, 0, 0);
+        result = result.filter((inv) => {
+          const invoiceDate = new Date(inv.invoiceDate);
+          return invoiceDate >= fromDate;
+        });
+      }
+    }
+if (isValidDateFilter(newFilters.dateTo)) {
+      const toDate = parseDateFilter(newFilters.dateTo);
+
+      if (toDate) {
         toDate.setHours(23, 59, 59, 999);
-        return invoiceDate <= toDate;
-      });
+        result = result.filter((inv) => {
+          const invoiceDate = new Date(inv.invoiceDate);
+          return invoiceDate <= toDate;
+        });
+      }
     }
 
     if (newFilters.search) {
@@ -221,8 +234,8 @@ export const InvoicesPage: React.FC = () => {
       activeFilters.status
         ? `Estado: ${statusOptions.find((opt) => opt.value === activeFilters.status)?.label ?? 'N/A'}`
         : null,
-       activeFilters.dateFrom ? `Data inicial: ${formatDate(new Date(activeFilters.dateFrom))}` : null,
-      activeFilters.dateTo ? `Data final: ${formatDate(new Date(activeFilters.dateTo))}` : null,
+       isValidDateFilter(activeFilters.dateFrom) ? `Data inicial: ${formatDate(new Date(activeFilters.dateFrom as string))}` : null,
+      isValidDateFilter(activeFilters.dateTo) ? `Data final: ${formatDate(new Date(activeFilters.dateTo as string))}` : null,
       activeFilters.search ? `Pesquisa: ${activeFilters.search}` : null,
     ]
       .filter(Boolean)

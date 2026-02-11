@@ -14,8 +14,26 @@ interface FilterBarProps {
 export const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange }) => {
   const [filterValues, setFilterValues] = useState<Record<string, string>>({});
 
+  const limitYearTo4Digits = (value: string) => {
+    if (!value) return '';
+
+    const [year = '', ...rest] = value.split('-');
+    return [year.slice(0, 4), ...rest].join('-');
+  };
+
+  const normalizeFilterValue = (key: string, value: string) => {
+    const filter = filters.find((item) => item.key === key);
+
+    if (filter?.type === 'date') {
+      return limitYearTo4Digits(value);
+    }
+
+    return value;
+  };
+
   const handleChange = (key: string, value: string) => {
-    const newValues = { ...filterValues, [key]: value };
+    const normalizedValue = normalizeFilterValue(key, value);
+    const newValues = { ...filterValues, [key]: normalizedValue };
     setFilterValues(newValues);
     onFilterChange(newValues);
   };
