@@ -32,34 +32,11 @@ export const InvoicesPage: React.FC = () => {
       .sort((a, b) => a.label.localeCompare(b.label, 'pt-PT'));
   }, [invoices]);
 
-   const monthYearOptions = useMemo(() => {
-    const monthFormatter = new Intl.DateTimeFormat('pt-PT', { month: 'long', year: 'numeric' });
-    const uniqueMonths = new Set<string>();
-
-    invoices.forEach((invoice) => {
-      const date = new Date(invoice.invoiceDate);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      uniqueMonths.add(`${year}-${month}`);
-    });
-
-    return Array.from(uniqueMonths)
-      .sort((a, b) => b.localeCompare(a))
-      .map((value) => {
-        const [year, month] = value.split('-').map(Number);
-        const labelDate = new Date(year, month - 1, 1);
-        const label = monthFormatter.format(labelDate);
-        return {
-          value,
-          label: label.charAt(0).toUpperCase() + label.slice(1),
-        };
-      });
-  }, [invoices]);
-
   const filterConfig = [
     { key: 'supplierId', label: 'Fornecedor', type: 'select' as const, options: supplierOptions },
     { key: 'status', label: 'Estado', type: 'select' as const, options: statusOptions },
-    { key: 'monthYear', label: 'Mês/Ano', type: 'select' as const, options: monthYearOptions },
+    { key: 'dateFrom', label: 'Data inicial', type: 'date' as const },
+    { key: 'dateTo', label: 'Data final', type: 'date' as const },
     { key: 'search', label: 'Pesquisar', type: 'text' as const, placeholder: 'Nº Fatura' },
   ];
 
@@ -94,12 +71,21 @@ export const InvoicesPage: React.FC = () => {
       result = result.filter((inv) => inv.status === newFilters.status);
     }
 
-    if (newFilters.monthYear) {
+    if (newFilters.dateFrom) {
       result = result.filter((inv) => {
-        const date = new Date(inv.invoiceDate);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        return `${year}-${month}` === newFilters.monthYear;
+        const invoiceDate = new Date(inv.invoiceDate);
+        const fromDate = new Date(newFilters.dateFrom);
+        fromDate.setHours(0, 0, 0, 0);
+        return invoiceDate >= fromDate;
+      });
+    }
+
+    if (newFilters.dateTo) {
+      result = result.filter((inv) => {
+        const invoiceDate = new Date(inv.invoiceDate);
+        const toDate = new Date(newFilters.dateTo);
+        toDate.setHours(23, 59, 59, 999);
+        return invoiceDate <= toDate;
       });
     }
 
@@ -235,9 +221,8 @@ export const InvoicesPage: React.FC = () => {
       activeFilters.status
         ? `Estado: ${statusOptions.find((opt) => opt.value === activeFilters.status)?.label ?? 'N/A'}`
         : null,
-      activeFilters.monthYear
-        ? `Mês/Ano: ${monthYearOptions.find((opt) => opt.value === activeFilters.monthYear)?.label ?? activeFilters.monthYear}`
-        : null,
+       activeFilters.dateFrom ? `Data inicial: ${formatDate(new Date(activeFilters.dateFrom))}` : null,
+      activeFilters.dateTo ? `Data final: ${formatDate(new Date(activeFilters.dateTo))}` : null,
       activeFilters.search ? `Pesquisa: ${activeFilters.search}` : null,
     ]
       .filter(Boolean)
