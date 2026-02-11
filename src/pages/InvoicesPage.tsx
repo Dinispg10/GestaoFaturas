@@ -417,7 +417,7 @@ document.body.appendChild(printFrame);
           <h2 className="page-title">Faturas</h2>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
-          <Button variant="secondary" onClick={handleExportPdf}>
+          <Button className="btn btn-export" variant="secondary" onClick={handleExportPdf}>
             Exportar PDF
           </Button>
           <Button variant="primary" onClick={() => navigate('/faturas/nova')}>

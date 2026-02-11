@@ -8,6 +8,7 @@ import { Button } from '../components/Button';
 import { FileUpload } from '../components/FileUpload';
 import { useAuthUser } from '../hooks/useUser';
 
+
 export const InvoiceFormPage: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export const InvoiceFormPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+  const [initialAttachment, setInitialAttachment] = useState<Invoice['attachment']>();
 
     const revokeAttachmentPreviewUrl = useCallback((attachment?: Partial<Invoice['attachment']>) => {
     if (attachment?.url?.startsWith('blob:')) {
@@ -41,6 +43,7 @@ export const InvoiceFormPage: React.FC = () => {
         const invoiceData = await invoiceService.getInvoice(id);
         if (invoiceData) {
           setInvoice(invoiceData);
+          setInitialAttachment(invoiceData.attachment);
         }
       }
     } catch (error) {
@@ -69,10 +72,6 @@ export const InvoiceFormPage: React.FC = () => {
     if (!invoice.invoiceDate) validationErrors.push('Data da Fatura é obrigatória');
     if (!invoice.totalAmount && invoice.totalAmount !== 0) validationErrors.push('Total é obrigatório');
 
-    if (!invoice.attachment) {
-      validationErrors.push('Documento é obrigatório para submeter');
-    }
-
     if (validationErrors.length > 0) {
       setErrors(validationErrors);
       return;
@@ -89,7 +88,7 @@ export const InvoiceFormPage: React.FC = () => {
     try {
       const supplier = suppliers.find((s) => s.id === invoice.supplierId);
 
-      const invoiceData: Partial<Invoice> = {
+      const invoiceData: Omit<Partial<Invoice>, 'attachment'> & { attachment?: Invoice['attachment'] | null } = {
         ...invoice,
         status: invoice.status === 'paid' ? 'paid' : 'submitted',
         supplierNameSnapshot: supplier?.name || '',
@@ -97,6 +96,7 @@ export const InvoiceFormPage: React.FC = () => {
       };
 
       if (id) {
+        const attachmentWasRemoved = !invoice.attachment && Boolean(initialAttachment);
         // If a new local file was selected, upload it first
         if (invoice.attachment && invoice.attachment.file) {
           try {
@@ -115,7 +115,16 @@ export const InvoiceFormPage: React.FC = () => {
           }
         }
 
+        if (attachmentWasRemoved) {
+          invoiceData.attachment = null;
+        }
+
         await invoiceService.updateInvoice(id, invoiceData, user?.id || '', 'UPDATED');
+
+        if (attachmentWasRemoved && initialAttachment?.storagePath) {
+          await supabaseUploadService.deleteFile(initialAttachment.storagePath);
+        }
+
         navigate(`/faturas/${id}`);
       } else {
         const newId = await invoiceService.createInvoice(invoiceData as Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'>);
@@ -263,7 +272,7 @@ export const InvoiceFormPage: React.FC = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="attachment">Documento (Ficheiro) *</label>
+          <label htmlFor="attachment">Documento (Ficheiro)</label>
           <FileUpload
              onFileSelected={(file) => {
               revokeAttachmentPreviewUrl(invoice.attachment);

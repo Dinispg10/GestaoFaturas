@@ -21,7 +21,7 @@
 }
 
 .data-table thead {
-  background: linear-gradient(135deg, #f6f1ff 0%, #e9f5f2 100%);
+  background: #f6f1ff;
   border-bottom: 1px solid #ddd8e8;
 }
 

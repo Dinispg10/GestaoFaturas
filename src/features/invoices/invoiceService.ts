@@ -71,7 +71,7 @@ export const invoiceService = {
 
   async updateInvoice(
     invoiceId: string,
-    invoice: Partial<Invoice>,
+    invoice: Omit<Partial<Invoice>, 'attachment'> & { attachment?: Invoice['attachment'] | null },
     userId: string,
     eventType?: InvoiceEvent['type'],
   ): Promise<void> {
@@ -83,7 +83,11 @@ export const invoiceService = {
     if (invoice.dueDate) updateData.due_date = invoice.dueDate;
     if (invoice.totalAmount !== undefined) updateData.total_amount = invoice.totalAmount;
     if (invoice.status) updateData.status = invoice.status;
-    if (invoice.attachment) updateData.attachment_url = invoice.attachment.url;
+    if (invoice.attachment === null) {
+      updateData.attachment_url = null;
+    } else if (invoice.attachment) {
+      updateData.attachment_url = invoice.attachment.url;
+    }
     if (invoice.notes) updateData.notes = invoice.notes;
     if (invoice.payment) {
       updateData.payment_paid_at = invoice.payment.paidAt;

@@ -59,16 +59,18 @@ body,
 }
 
 .btn-primary:hover {
-  background-color: #0052a3;
+  background-color: #dfd6ef;
+  color:#4a3f83;
 }
 
 .btn-secondary {
-  background-color: #ccc;
-  color: #333;
+  background-color: #4a3f83;
+  color: #ffffff;
 }
 
 .btn-secondary:hover {
-  background-color: #999;
+  background-color: #dfd6ef;
+  color:#4a3f83
 }
 
 .btn-danger {
@@ -108,6 +110,15 @@ body,
   opacity: 0.7;
 }
 
+.btn-export{
+  background-color: #dfd6ef;
+  color: #4a3f83;
+}
+
+.btn-export:hover{
+  background-color: #4a3f83;
+  color: white;
+}
 /* Forms */
 .form-group {
   margin-bottom: 16px;
