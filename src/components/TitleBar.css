@@ -1,0 +1,92 @@
+.titlebar-root {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+}
+
+.titlebar-drag {
+  --titlebar-bg-top: #4f2d74;
+  --titlebar-bg-bottom: #432764;
+  --titlebar-border: rgba(255, 255, 255, 0.12);
+
+  height: 38px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  color: #ffffff;
+  user-select: none;
+
+  background: linear-gradient(180deg, var(--titlebar-bg-top), var(--titlebar-bg-bottom));
+  border-bottom: 1px solid var(--titlebar-border);
+  box-shadow: 0 4px 10px rgba(39, 20, 58, 0.2);
+}
+
+.titlebar-drag {
+  -webkit-app-region: drag; /* ajuda no Windows/WebView */
+}
+
+.titlebar-actions,
+.tb-btn {
+  -webkit-app-region: no-drag; /* garante cliques nos botões */
+}
+
+/* opcional: evita seleção acidental */
+.titlebar-drag * {
+  user-select: none;
+}
+
+
+.titlebar-spacer {
+  flex: 1;
+  height: 100%;
+}
+
+.titlebar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-left: 8px;
+}
+
+.tb-btn {
+  width: 30px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.13);
+  color: #ffffff;
+  cursor: pointer;
+  transition: transform 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
+}
+
+.tb-btn:hover {
+  background: rgba(255, 255, 255, 0.23);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 10px rgba(17, 10, 29, 0.28);
+}
+
+.tb-btn:active {
+  transform: translateY(0);
+}
+
+.tb-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 2px;
+}
+
+.tb-icon {
+  width: 13px;
+  height: 13px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tb-close:hover {
+  background: #dc3545;
+}
