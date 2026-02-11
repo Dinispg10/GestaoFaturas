@@ -114,3 +114,94 @@ button {
     background-color: #0f0f0f69;
   }
 }
+
+
+.titlebar-root {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.titlebar-drag {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px 0 12px;
+
+  /* look premium */
+  background: linear-gradient(180deg, rgba(35, 28, 95, 0.92), rgba(35, 28, 95, 0.84));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+
+  color: #ffffff;
+  user-select: none;
+}
+
+.titlebar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 260px;
+}
+
+.titlebar-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.titlebar-title {
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: 0.2px;
+  opacity: 0.95;
+}
+
+.titlebar-spacer {
+  flex: 1;
+}
+
+.titlebar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 10px;
+}
+
+.tb-btn {
+  width: 40px;
+  height: 32px;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.10);
+  color: #fff;
+  cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease;
+}
+
+.tb-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  transform: translateY(-1px);
+}
+
+.tb-btn:active {
+  transform: translateY(0px);
+}
+
+.tb-icon {
+  font-size: 14px;
+  line-height: 1;
+  display: inline-block;
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+
+.tb-close:hover {
+  background: rgba(255, 70, 70, 0.75);
+}
+

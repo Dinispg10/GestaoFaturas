@@ -201,6 +201,12 @@ export const InvoiceFormPage: React.FC = () => {
 
   const canEdit = true;
 
+   const handleFormKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="form-container">
       <div className="flex-between mb-4">
@@ -226,7 +232,13 @@ export const InvoiceFormPage: React.FC = () => {
         </div>
       )}
 
-      <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
+        onKeyDown={handleFormKeyDown}
+      >
         <div className="form-row">
           <div className="form-group">
             <label htmlFor="supplier">Fornecedor *</label>

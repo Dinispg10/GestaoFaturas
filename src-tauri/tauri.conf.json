@@ -15,7 +15,9 @@
         "title": "Farmácia Pinto",
         "width": 1280,
         "height": 800,
-        "maximized": true
+        "maximized": true,
+        "decorations": false,
+        "transparent": false
       }
     ],
     "security": {
