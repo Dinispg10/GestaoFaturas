@@ -8,6 +8,7 @@ import { Modal } from '../components/Modal';
 import { supabaseUploadService } from '../utils/supabaseUploadService';
 import { useAuthUser } from '../hooks/useUser';
 import { openUrl } from '@tauri-apps/plugin-opener';
+import { formatDateOnlyForDisplay } from '../utils/dateUtils';
 
 export const InvoiceDetailPage: React.FC = () => {
   const { id } = useParams();
@@ -148,11 +149,11 @@ export const InvoiceDetailPage: React.FC = () => {
           </div>
           <div className="detail-row">
             <span className="label">Data:</span>
-            <span>{new Date(invoice.invoiceDate).toLocaleDateString('pt-PT')}</span>
+            <span>{formatDateOnlyForDisplay(invoice.invoiceDate)}</span>
           </div>
           <div className="detail-row">
             <span className="label">Vencimento:</span>
-            <span>{new Date(invoice.dueDate).toLocaleDateString('pt-PT')}</span>
+            <span>{formatDateOnlyForDisplay(invoice.dueDate)}</span>
           </div>
           <div className="detail-row">
             <span className="label">Total:</span>

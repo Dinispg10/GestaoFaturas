@@ -187,7 +187,8 @@ if (isValidDateFilter(newFilters.dateTo)) {
     );
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date?: Date) => {
+    if (!date) return '—';
     return new Date(date).toLocaleDateString('pt-PT');
   };
 

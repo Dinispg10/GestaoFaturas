@@ -34,7 +34,7 @@ export interface Invoice {
   supplierNameSnapshot: string;
   invoiceNumber: string;
   invoiceDate: Date;
-  dueDate: Date;
+  dueDate?: Date;
   totalAmount: number;
   status: InvoiceStatus;
   attachment?: FileAttachment;

@@ -1,6 +1,7 @@
 import { supabase } from '../../lib/supabase';
 import { Invoice, InvoiceEvent, InvoiceStatus } from '../../types';
 import { supabaseUploadService } from '../../utils/supabaseUploadService';
+import { formatDateOnlyForInput, parseDateOnly } from '../../utils/dateUtils';
 
 const INVOICE_SELECT = `
   *,
@@ -49,8 +50,8 @@ export const invoiceService = {
         supplier_id: invoice.supplierId,
         supplier_name_snapshot: invoice.supplierNameSnapshot,
         invoice_number: invoice.invoiceNumber,
-        invoice_date: invoice.invoiceDate,
-        due_date: invoice.dueDate,
+        invoice_date: formatDateOnlyForInput(invoice.invoiceDate),
+        due_date: invoice.dueDate ? formatDateOnlyForInput(invoice.dueDate) : null,
         total_amount: invoice.totalAmount,
         status: invoice.status,
         attachment_url: invoice.attachment?.url,
@@ -92,8 +93,12 @@ export const invoiceService = {
 
     if (invoice.supplierNameSnapshot) updateData.supplier_name_snapshot = invoice.supplierNameSnapshot;
     if (invoice.invoiceNumber) updateData.invoice_number = invoice.invoiceNumber;
-    if (invoice.invoiceDate) updateData.invoice_date = invoice.invoiceDate;
-    if (invoice.dueDate) updateData.due_date = invoice.dueDate;
+    if (invoice.invoiceDate) updateData.invoice_date = formatDateOnlyForInput(invoice.invoiceDate);
+    if (invoice.dueDate === undefined) {
+      updateData.due_date = null;
+    } else {
+      updateData.due_date = formatDateOnlyForInput(invoice.dueDate);
+    }
     if (invoice.totalAmount !== undefined) updateData.total_amount = invoice.totalAmount;
     if (invoice.status) updateData.status = invoice.status;
     if (invoice.attachment === null) {
@@ -291,8 +296,8 @@ export const invoiceService = {
       supplierId: data.supplier_id,
       supplierNameSnapshot: data.supplier_name_snapshot,
       invoiceNumber: data.invoice_number,
-      invoiceDate: new Date(data.invoice_date),
-      dueDate: new Date(data.due_date),
+      invoiceDate: parseDateOnly(data.invoice_date) || new Date(data.invoice_date),
+      dueDate: parseDateOnly(data.due_date),
       totalAmount: data.total_amount,
       status: data.status,
       attachment: data.attachment_url ? {
