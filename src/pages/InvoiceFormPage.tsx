@@ -6,6 +6,7 @@ import { Invoice, Supplier } from '../types';
 import { supabaseUploadService } from '../utils/supabaseUploadService';
 import { Button } from '../components/Button';
 import { FileUpload } from '../components/FileUpload';
+import { DateInputWithPicker } from '../components/DateInputWithPicker';
 import { useAuthUser } from '../hooks/useUser';
 import { formatDateOnlyForInput, parseDateOnly } from '../utils/dateUtils';
 
@@ -35,15 +36,7 @@ export const InvoiceFormPage: React.FC = () => {
     return [year.slice(0, 4), ...rest].join('-');
   };
 
-  const openNativeDatePicker = (inputId: 'invoiceDate' | 'dueDate') => {
-    const input = document.getElementById(inputId) as (HTMLInputElement & { showPicker?: () => void }) | null;
-    if (input?.showPicker) {
-      input.showPicker();
-      return;
-    }
-
-    input?.focus();
-  };
+  
 
   const handleDateChange = (field: 'invoiceDate' | 'dueDate', value: string) => {
     const normalizedValue = limitYearTo4Digits(value);
@@ -275,48 +268,24 @@ export const InvoiceFormPage: React.FC = () => {
         <div className="form-row">
           <div className="form-group">
             <label htmlFor="invoiceDate">Data da Fatura *</label>
-            <div className="date-input-row">
-              <input
-                id="invoiceDate"
-                type="date"
-                value={invoiceDateInput}
-                onChange={(e) => handleDateChange('invoiceDate', e.target.value)}
-                onFocus={() => openNativeDatePicker('invoiceDate')}
-                disabled={!canEdit}
-              />
-              <button
-                type="button"
-                className="calendar-button"
-                onClick={() => openNativeDatePicker('invoiceDate')}
-                disabled={!canEdit}
-                aria-label="Abrir calendário da data da fatura"
-              >
-                📅
-              </button>
-            </div>
+            <DateInputWithPicker
+              id="invoiceDate"
+              value={invoiceDateInput}
+              onChange={(value) => handleDateChange('invoiceDate', value)}
+              disabled={!canEdit}
+              ariaLabel="Abrir calendário da data da fatura"
+            />
           </div>
 
           <div className="form-group">
             <label htmlFor="dueDate">Data de Vencimento</label>
-            <div className="date-input-row">
-              <input
-                id="dueDate"
-                type="date"
-                value={dueDateInput}
-                onChange={(e) => handleDateChange('dueDate', e.target.value)}
-                onFocus={() => openNativeDatePicker('dueDate')}
-                disabled={!canEdit}
-              />
-              <button
-                type="button"
-                className="calendar-button"
-                onClick={() => openNativeDatePicker('dueDate')}
-                disabled={!canEdit}
-                aria-label="Abrir calendário da data de vencimento"
-              >
-                📅
-              </button>
-            </div>
+            <DateInputWithPicker
+              id="dueDate"
+              value={dueDateInput}
+              onChange={(value) => handleDateChange('dueDate', value)}
+              disabled={!canEdit}
+              ariaLabel="Abrir calendário da data de vencimento"
+            />
           </div>
         </div>
 
@@ -434,30 +403,6 @@ export const InvoiceFormPage: React.FC = () => {
           display: block;
           margin-bottom: 6px;
           font-weight: 500;
-        }
-
-        .date-input-row {
-          display: flex;
-          gap: 8px;
-          align-items: center;
-        }
-
-        .date-input-row input {
-          flex: 1;
-        }
-
-        .calendar-button {
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          background: #fff;
-          cursor: pointer;
-          padding: 8px 10px;
-          line-height: 1;
-        }
-
-        .calendar-button:disabled {
-          cursor: not-allowed;
-          opacity: 0.6;
         }
 
         .form-group input,

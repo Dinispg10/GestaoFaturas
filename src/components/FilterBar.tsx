@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { DateInputWithPicker } from './DateInputWithPicker';
 
 interface FilterBarProps {
   filters: {
@@ -62,6 +63,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({ filters, onFilterChange })
                   </option>
                 ))}
               </select>
+              ) : filter.type === 'date' ? (
+              <DateInputWithPicker
+                id={filter.key}
+                value={filterValues[filter.key] || ''}
+                onChange={(value) => handleChange(filter.key, value)}
+                ariaLabel={`Abrir calendário do filtro ${filter.label.toLowerCase()}`}
+                placeholder={filter.placeholder}
+              />
             ) : (
               <input
                 id={filter.key}
