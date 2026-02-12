@@ -171,9 +171,9 @@ export const InvoiceFormPage: React.FC = () => {
                attachment: { url: uploaded.url, fileName: uploaded.fileName, storagePath: uploaded.storagePath } as any,
             }, user?.id || '');
           } catch (err) {
-            const message = err instanceof Error ? err.message : 'Erro no upload do documento';
+            const message = err instanceof Error ? err.message : 'Erro ao anexar documento à fatura';
             setErrors([message]);
-            console.error('Upload error:', err);
+           console.error('Attachment update error:', err);
             setLoading(false);
             return;
           }
@@ -316,7 +316,7 @@ export const InvoiceFormPage: React.FC = () => {
               revokeAttachmentPreviewUrl(invoice.attachment);
               setInvoice({ ...invoice, attachment: file });
             }}
-            onError={(error) => setErrors([...errors, error])}
+            onError={(error) => setErrors((prevErrors) => [...prevErrors, error])}
             disabled={!canEdit}
           />
           {invoice.attachment && (

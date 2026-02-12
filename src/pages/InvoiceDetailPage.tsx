@@ -20,6 +20,7 @@ export const InvoiceDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('');
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -54,10 +55,13 @@ export const InvoiceDetailPage: React.FC = () => {
 
     try {
       await invoiceService.markAsPaid(id, paymentMethod, user.id);
+      setActionError(null);
       setShowPaymentModal(false);
       setPaymentMethod('');
-      loadData();
+      await loadData();
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erro ao marcar como paga';
+      setActionError(message);
       console.error('Erro ao marcar como paga:', error);
     }
   };
@@ -132,6 +136,9 @@ export const InvoiceDetailPage: React.FC = () => {
         </div>
       </div>
 
+{actionError && (
+        <div className="alert alert-error mb-4">{actionError}</div>
+      )}
       <div className="detail-grid">
         <div className="detail-card">
           <h3>Informações da Fatura</h3>
@@ -210,7 +217,7 @@ export const InvoiceDetailPage: React.FC = () => {
 
       <div className="actions-section">
         {canMarkAsPaid && (
-          <Button variant="success" onClick={() => setShowPaymentModal(true)}>
+           <Button variant="success" onClick={() => { setActionError(null); setShowPaymentModal(true); }}>
             Marcar como Paga
           </Button>
         )}

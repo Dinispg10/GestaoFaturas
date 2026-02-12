@@ -79,6 +79,8 @@ export const invoiceService = {
   ): Promise<void> {
     const updateData: Record<string, any> = {};
     let existingAttachmentUrl: string | null = null;
+    const hasDueDate = Object.prototype.hasOwnProperty.call(invoice, 'dueDate');
+    const hasNotes = Object.prototype.hasOwnProperty.call(invoice, 'notes');
 
     if (invoice.attachment !== undefined) {
       const { data: existingInvoice, error: existingInvoiceError } = await supabase
@@ -94,10 +96,8 @@ export const invoiceService = {
     if (invoice.supplierNameSnapshot) updateData.supplier_name_snapshot = invoice.supplierNameSnapshot;
     if (invoice.invoiceNumber) updateData.invoice_number = invoice.invoiceNumber;
     if (invoice.invoiceDate) updateData.invoice_date = formatDateOnlyForInput(invoice.invoiceDate);
-    if (invoice.dueDate === undefined) {
-      updateData.due_date = null;
-    } else {
-      updateData.due_date = formatDateOnlyForInput(invoice.dueDate);
+    if (hasDueDate) {
+      updateData.due_date = invoice.dueDate ? formatDateOnlyForInput(invoice.dueDate) : null;
     }
     if (invoice.totalAmount !== undefined) updateData.total_amount = invoice.totalAmount;
     if (invoice.status) updateData.status = invoice.status;
@@ -106,7 +106,7 @@ export const invoiceService = {
     } else if (invoice.attachment) {
       updateData.attachment_url = invoice.attachment.url;
     }
-    if (invoice.notes) updateData.notes = invoice.notes;
+    if (hasNotes) updateData.notes = invoice.notes ?? null;
     if (invoice.payment) {
       updateData.payment_paid_at = invoice.payment.paidAt;
       updateData.payment_method = invoice.payment.method;
