@@ -213,7 +213,7 @@ body,
 
 .filter-controls {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 12px;
   align-items: flex-end;
 }
@@ -240,6 +240,13 @@ body,
 .filter-clear-btn {
   background-color: #4a3f83;
   color: #ffffff;
+  white-space: nowrap;
+}
+
+@media (min-width: 1200px) {
+  .filter-controls {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
 }
 /* Modal */
 .modal-overlay {

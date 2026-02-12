@@ -206,12 +206,12 @@ if (isValidDateFilter(newFilters.dateTo)) {
   };
 
   const handleExportPdf = () => {
-    if (filteredInvoices.length === 0) {
+   if (sortedInvoices.length === 0) {
       window.alert('Não há faturas para exportar com os filtros atuais.');
       return;
     }
 
-    const tableRows = filteredInvoices
+    const tableRows = sortedInvoices
       .map(
         (invoice) => `
           <tr>
@@ -219,7 +219,7 @@ if (isValidDateFilter(newFilters.dateTo)) {
             <td>${invoice.invoiceNumber}</td>
             <td>${formatDate(invoice.invoiceDate)}</td>
             <td>${formatDate(invoice.dueDate)}</td>
-            <td>${getStatusLabel(invoice.status)}</td>
+            <td class="status-cell">${getStatusLabel(invoice.status)}</td>
             <td>${formatCurrency(invoice.totalAmount)}</td>
             <td>${invoice.createdBy}</td>
             <td>${formatDate(invoice.updatedAt)}</td>
@@ -239,11 +239,7 @@ if (isValidDateFilter(newFilters.dateTo)) {
       isValidDateFilter(activeFilters.dateTo) ? `Data final: ${formatDate(new Date(activeFilters.dateTo as string))}` : null,
       activeFilters.search ? `Pesquisa: ${activeFilters.search}` : null,
     ]
-      .filter(Boolean)
-      .join(' | ');
-
-    
-    const reportDate = new Date().toLocaleString('pt-PT');
+       .filter(Boolean);
 
     const htmlContent = `
       <!doctype html>
@@ -259,72 +255,225 @@ if (isValidDateFilter(newFilters.dateTo)) {
             }
 
             h1 {
-              margin: 0 0 8px;
-              font-size: 22px;
+              margin: 0 0 16px;
+              font-size: 28px;
+              color: #2e1d4d;
+              letter-spacing: 0.2px;
             }
 
-            .meta {
-              margin-bottom: 8px;
-              color: #555;
-              font-size: 12px;
+            .report-wrapper {
+              border: 1px solid #ddd8e8;
+              border-radius: 14px;
+              overflow: hidden;
+              box-shadow: 0 8px 24px rgba(33, 24, 56, 0.08);
             }
 
-            .filters {
-              margin-bottom: 16px;
-              background: #f7f7f9;
-              padding: 10px 12px;
-              border-radius: 8px;
-              font-size: 13px;
-            }
-
-            table {
+            .report-table {
               width: 100%;
               border-collapse: collapse;
               font-size: 12px;
             }
 
-            th, td {
-              border: 1px solid #d6d6de;
-              padding: 8px;
-              text-align: left;
+            .report-table thead {
+              background: #f6f1ff;
             }
 
-            th {
-              background: #f0ebfa;
+            .report-table th {
+              padding: 12px;
+              text-align: left;
+              font-weight: 700;
+              color: #4a3167;
+              border-bottom: 1px solid #ddd8e8;
+            }
+
+            .report-table td {
+              border-bottom: 1px solid #f0edf7;
+              padding: 10px 12px;
+              color: #231b2e;
+              vertical-align: top;
+            }
+
+            .report-table tbody tr:last-child td {
+              border-bottom: none;
+            }
+
+            .report-table th,
+            .report-table td {
+              border-right: 1px solid #f0edf7;
+            }
+
+            .report-table th:last-child,
+            .report-table td:last-child {
+              border-right: none;
+            }
+
+            .filters {
+              margin-bottom: 16px;
+              background: #dfd6ef;
+              padding: 10px 12px;
+              border-radius: 8px;
+              border: 1px solid #d2c6e5;
+              font-size: 12px;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+            }
+
+            .filters-label {
+              font-weight: 700;
+              color: #34214f;
+            }
+
+            .filter-tag {
+              background: #fff;
+              border: 1px solid #d9cceb;
+              border-radius: 999px;
+              padding: 3px 10px;
+              color: #4a3167;
+              white-space: nowrap;
+            }
+
+            .filter-tag.empty {
+              white-space: normal;
+            }
+
+            @page {
+              size: A4 landscape;
+              margin: 10mm;
             }
 
             @media print {
               body {
-                margin: 10mm;
+                 margin: 0;
               }
+
+              .report-wrapper {
+                border-radius: 0;
+                box-shadow: none;
+                overflow: visible;
+                break-inside: auto;
+              }
+
+              .report-table {
+                page-break-inside: auto;
+              }
+
+              .report-table thead {
+                display: table-header-group;
+              }
+                .report-table tfoot {
+                display: table-footer-group;
+              }
+
+              .report-table tr {
+                page-break-inside: avoid;
+                break-inside: avoid;
+              }
+            }
+
+            @media screen {
+              body {
+                max-width: 1120px;
+                margin: 24px auto;
+              }
+            }
+
+            .report-table th:nth-child(1), .report-table td:nth-child(1) { width: 18%; }
+            .report-table th:nth-child(2), .report-table td:nth-child(2) { width: 9%; }
+            .report-table th:nth-child(3), .report-table td:nth-child(3) { width: 10%; }
+            .report-table th:nth-child(4), .report-table td:nth-child(4) { width: 10%; }
+            .report-table th:nth-child(5), .report-table td:nth-child(5) { width: 18%; }
+            .report-table th:nth-child(6), .report-table td:nth-child(6) { width: 10%; }
+            .report-table th:nth-child(7), .report-table td:nth-child(7) { width: 12%; }
+            .report-table th:nth-child(8), .report-table td:nth-child(8) { width: 13%; }
+
+            .report-table td:nth-child(2),
+            .report-table td:nth-child(3),
+            .report-table td:nth-child(4),
+            .report-table td:nth-child(6),
+            .report-table td:nth-child(8) {
+              white-space: nowrap;
+            }
+
+            .report-table td:nth-child(6) {
+              font-weight: 600;
+            }
+
+            .status-cell {
+              font-weight: 600;
+              color: #4a3167;
+            }
+
+            .report-table td:first-child {
+              text-transform: uppercase;
+            }
+
+            .report-table tbody tr:nth-child(even) {
+              background: #fcfafe;
+            }
+
+            .report-table tbody tr:hover {
+              background: #f8f5ff;
+            }
+
+            .report-table-container {
+              width: 100%;
+              overflow: visible;
+            }
+
+            .status-cell {
+              white-space: normal;
+              line-height: 1.2;
+            }
+
+            .report-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 12px;
+            }
+
+            .report-subtitle {
+              color: #555;
+              font-size: 12px;
+              margin: 0;
             }
           </style>
         </head>
         <body>
-          <h1>Relatório de Faturas</h1>
-          <div class="meta">Gerado em: ${reportDate}</div>
-          <div class="meta">Total de registos: ${filteredInvoices.length}</div>
+          <div class="report-header">
+            <h1>Relatório de Faturas</h1>
+            <p class="report-subtitle">Farmácia Pinto</p>
+          </div>
           <div class="filters">
-            <strong>Filtros aplicados:</strong> ${filtersSummary || 'Sem filtros'}
+             <span class="filters-label">Filtros aplicados:</span>
+            ${filtersSummary.length > 0
+              ? filtersSummary.map((filter) => `<span class="filter-tag">${filter}</span>`).join('')
+              : '<span class="filter-tag empty">Sem filtros</span>'}
           </div>
 
-          <table>
-            <thead>
-              <tr>
-                <th>Fornecedor</th>
-                <th>Nº Fatura</th>
-                <th>Data</th>
-                <th>Vencimento</th>
-                <th>Estado</th>
-                <th>Total</th>
-                <th>Criado por</th>
-                <th>Atualizado em</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${tableRows}
-            </tbody>
-          </table>
+          <div class="report-wrapper">
+            <div class="report-table-container">
+              <table class="report-table">
+                <thead>
+                  <tr>
+                    <th>Fornecedor</th>
+                    <th>Nº Fatura</th>
+                    <th>Data</th>
+                    <th>Vencimento</th>
+                    <th>Estado</th>
+                    <th>Total</th>
+                    <th>Criado por</th>
+                    <th>Atualizado em</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${tableRows}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </body>
       </html>
       
