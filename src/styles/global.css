@@ -164,6 +164,11 @@ body,
   padding-right: 42px !important;
 }
 
+.date-field-input.date-field-input-invalid {
+  border-color: #d92d20;
+  box-shadow: 0 0 0 2px rgba(217, 45, 32, 0.12);
+}
+
 .date-field-trigger {
   position: absolute;
   top: 50%;

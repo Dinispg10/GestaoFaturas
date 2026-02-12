@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 interface DateInputWithPickerProps {
   id: string;
@@ -17,10 +17,93 @@ export const DateInputWithPicker: React.FC<DateInputWithPickerProps> = ({
   ariaLabel,
   placeholder,
 }) => {
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const pickerInputRef = useRef<HTMLInputElement | null>(null);
+  const [displayValue, setDisplayValue] = useState('');
+  const [hasInvalidDate, setHasInvalidDate] = useState(false);
+
+  const normalizedDisplayValue = useMemo(() => {
+    if (!value) return '';
+
+    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) return value;
+
+    const [, year, month, day] = match;
+    return `${day}/${month}/${year}`;
+  }, [value]);
+
+  useEffect(() => {
+    setDisplayValue(normalizedDisplayValue);
+    setHasInvalidDate(false);
+  }, [normalizedDisplayValue]);
+
+  const formatDigitsToPtDate = (digits: string): string => {
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
+  };
+
+  const parsePtDateToIso = (ptDate: string): string | undefined => {
+    const match = ptDate.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (!match) return undefined;
+
+    const [, day, month, year] = match;
+    const isoDate = `${year}-${month}-${day}`;
+    const parsed = new Date(Number(year), Number(month) - 1, Number(day));
+
+    if (
+      parsed.getFullYear() !== Number(year)
+      || parsed.getMonth() !== Number(month) - 1
+      || parsed.getDate() !== Number(day)
+    ) {
+      return undefined;
+    }
+
+    return isoDate;
+  };
+
+  const handleTextChange = (nextValue: string) => {
+    const isoMatch = nextValue.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (isoMatch) {
+      const [, year, month, day] = isoMatch;
+      const formattedIso = `${day}/${month}/${year}`;
+      const isoDate = parsePtDateToIso(formattedIso);
+
+      setDisplayValue(formattedIso);
+      if (isoDate) {
+        setHasInvalidDate(false);
+        onChange(isoDate);
+      }
+      return;
+    }
+
+    const digits = nextValue.replace(/\D/g, '').slice(0, 8);
+    const formatted = formatDigitsToPtDate(digits);
+
+    setDisplayValue(formatted);
+
+    if (digits.length === 0) {
+      setHasInvalidDate(false);
+      onChange('');
+      return;
+    }
+
+    if (digits.length < 8) {
+      setHasInvalidDate(false);
+      return;
+    }
+
+    const isoDate = parsePtDateToIso(formatted);
+    if (!isoDate) {
+      setHasInvalidDate(true);
+      return;
+    }
+
+    setHasInvalidDate(false);
+    onChange(isoDate);
+  };
 
   const openPicker = () => {
-    const input = inputRef.current as (HTMLInputElement & { showPicker?: () => void }) | null;
+     const input = pickerInputRef.current as (HTMLInputElement & { showPicker?: () => void }) | null;
 
     if (!input || disabled) {
       return;
@@ -38,14 +121,28 @@ export const DateInputWithPicker: React.FC<DateInputWithPickerProps> = ({
   return (
     <div className="date-field">
       <input
-        ref={inputRef}
         id={id}
+        type="text"
+        value={displayValue}
+        onChange={(e) => handleTextChange(e.target.value)}
+        disabled={disabled}
+        placeholder={placeholder ?? 'dd/mm/aaaa'}
+        className={`date-field-input ${hasInvalidDate ? 'date-field-input-invalid' : ''}`.trim()}
+        inputMode="numeric"
+        maxLength={10}
+        aria-label={ariaLabel}
+        aria-invalid={hasInvalidDate}
+      />
+      <input
+        ref={pickerInputRef}
+        id={`${id}-picker`}
         type="date"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        placeholder={placeholder}
-        className="date-field-input"
+        tabIndex={-1}
+        aria-hidden="true"
+        style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }}
       />
       <button
         type="button"
