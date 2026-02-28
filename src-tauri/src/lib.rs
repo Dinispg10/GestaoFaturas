@@ -54,6 +54,10 @@ pub fn run() {
                 eprintln!("failed to clear webview cache on version change: {error}");
             }
 
+            if let Some(window) = app.get_webview_window("main") {
+                window.open_devtools();
+            }
+
             Ok(())
         })
         .plugin(tauri_plugin_opener::init())
