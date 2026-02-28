@@ -45,7 +45,7 @@ export const LoginPage: React.FC = () => {
             <img src="/logo.png" alt="Farmácia Pinto" className="login-logo" />
           </div>
           <h1>Farmácia Pinto</h1>
-          <p>Registo de Faturas v2</p>
+          <p>Registo de Faturas Versao 3</p>
         </div>
 
         <form onSubmit={handleSubmit}>
