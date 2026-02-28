@@ -37,26 +37,32 @@ export default function UpdateChecker() {
   async function handleInstall() {
     if (status.kind !== "available") return;
 
-    const update = await check();
-    if (!update) return;
-
-    let downloaded = 0;
-    let total = 0;
-
-    await update.downloadAndInstall((progress) => {
-      if (progress.event === "Started") {
-        total = progress.data.contentLength ?? 0;
-        setStatus({ kind: "downloading", percent: 0 });
-      } else if (progress.event === "Progress") {
-        downloaded += progress.data.chunkLength;
-        const percent = total > 0 ? Math.round((downloaded / total) * 100) : 0;
-        setStatus({ kind: "downloading", percent });
-      } else if (progress.event === "Finished") {
-        setStatus({ kind: "downloading", percent: 100 });
+    try {
+      const update = await check();
+      if (!update) {
+        setStatus({ kind: "upToDate" });
+        return;
       }
-    });
+      let downloaded = 0;
+      let total = 0;
 
-    await relaunch();
+      await update.downloadAndInstall((progress) => {
+        if (progress.event === "Started") {
+          total = progress.data.contentLength ?? 0;
+          setStatus({ kind: "downloading", percent: 0 });
+        } else if (progress.event === "Progress") {
+          downloaded += progress.data.chunkLength;
+          const percent = total > 0 ? Math.round((downloaded / total) * 100) : 0;
+          setStatus({ kind: "downloading", percent });
+        } else if (progress.event === "Finished") {
+          setStatus({ kind: "downloading", percent: 100 });
+        }
+      });
+
+      await relaunch();
+    } catch (e) {
+      setStatus({ kind: "error", message: String(e) });
+    }
   }
 
   return (
