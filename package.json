@@ -1,7 +1,7 @@
 {
   "name": "react",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,6 +13,8 @@
     "@supabase/supabase-js": "^2.95.3",
     "@tauri-apps/api": "^2.10.1",
     "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-process": "^2",
+    "@tauri-apps/plugin-updater": "^2",
     "deno": "^2.6.8",
     "firebase": "^12.9.0",
     "react": "^19.1.0",

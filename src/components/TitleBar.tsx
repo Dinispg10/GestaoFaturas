@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import UpdateChecker from "./UpdateChecker";
 import "./TitleBar.css";
 
 type Props = {
@@ -55,55 +56,58 @@ export default function TitleBar({ title: _title }: Props) {
   }
 
   return (
-  <div className="titlebar-root">
-    <div className="titlebar-drag" data-tauri-drag-region>
-      <div className="titlebar-spacer" />
+    <div className="titlebar-root">
+      <div className="titlebar-drag" data-tauri-drag-region>
+        <div className="titlebar-update-area" data-tauri-drag-region={false}>
+          <UpdateChecker />
+        </div>
+        <div className="titlebar-spacer" />
 
-      <div className="titlebar-actions" data-tauri-drag-region={false}>
-        <button
-          className="tb-btn"
-          onClick={minimize}
-          aria-label="Minimizar"
-          title="Minimizar"
-          data-tauri-drag-region={false}
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true" className="tb-icon">
-            <path d="M6 12h12" />
-          </svg>
-        </button>
+        <div className="titlebar-actions" data-tauri-drag-region={false}>
+          <button
+            className="tb-btn"
+            onClick={minimize}
+            aria-label="Minimizar"
+            title="Minimizar"
+            data-tauri-drag-region={false}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="tb-icon">
+              <path d="M6 12h12" />
+            </svg>
+          </button>
 
-        <button
-          className="tb-btn"
-          onClick={toggleMaximize}
-          aria-label={isMaximized ? "Restaurar" : "Maximizar"}
-          title={isMaximized ? "Restaurar" : "Maximizar"}
-          data-tauri-drag-region={false}
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true" className="tb-icon">
-            {isMaximized ? (
-              <>
-                <path d="M9 6h9v9" />
-                <path d="M15 6v3h-6v9h9v-6h-3" />
-              </>
-            ) : (
-              <path d="M7 7h10v10H7z" />
-            )}
-          </svg>
-        </button>
+          <button
+            className="tb-btn"
+            onClick={toggleMaximize}
+            aria-label={isMaximized ? "Restaurar" : "Maximizar"}
+            title={isMaximized ? "Restaurar" : "Maximizar"}
+            data-tauri-drag-region={false}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="tb-icon">
+              {isMaximized ? (
+                <>
+                  <path d="M9 6h9v9" />
+                  <path d="M15 6v3h-6v9h9v-6h-3" />
+                </>
+              ) : (
+                <path d="M7 7h10v10H7z" />
+              )}
+            </svg>
+          </button>
 
-        <button
-          className="tb-btn tb-close"
-          onClick={close}
-          aria-label="Fechar"
-          title="Fechar"
-          data-tauri-drag-region={false}
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true" className="tb-icon">
-            <path d="M7 7l10 10M17 7L7 17" />
-          </svg>
-        </button>
+          <button
+            className="tb-btn tb-close"
+            onClick={close}
+            aria-label="Fechar"
+            title="Fechar"
+            data-tauri-drag-region={false}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="tb-icon">
+              <path d="M7 7l10 10M17 7L7 17" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
 }

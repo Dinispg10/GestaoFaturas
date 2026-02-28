@@ -90,3 +90,64 @@
 .tb-close:hover {
   background: #dc3545;
 }
+
+/* ── UpdateChecker ─────────────────────────────── */
+.titlebar-update-area {
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  -webkit-app-region: no-drag;
+}
+
+.update-btn {
+  height: 22px;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 0;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 120ms ease, transform 120ms ease;
+  white-space: nowrap;
+}
+
+.update-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+  transform: translateY(-1px);
+}
+
+.update-install {
+  background: rgba(72, 199, 116, 0.35);
+}
+
+.update-install:hover {
+  background: rgba(72, 199, 116, 0.55);
+}
+
+.update-msg {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  cursor: default;
+}
+
+.update-ok    { color: #48c774; }
+.update-new   { color: #ffdd57; font-weight: 600; }
+.update-error { color: #ff6b6b; cursor: pointer; }
+
+.update-progress-bar {
+  width: 80px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.update-progress-fill {
+  height: 100%;
+  background: #48c774;
+  border-radius: 3px;
+  transition: width 200ms ease;
+}

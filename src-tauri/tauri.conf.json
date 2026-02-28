@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Farmácia Pinto",
-  "version": "1.0.0",
- "identifier": "com.farmaciapinto.app",
+  "version": "1.0.1",
+  "identifier": "com.farmaciapinto.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -29,6 +29,23 @@
     "targets": "all",
     "icon": [
       "icons/logo.ico"
-    ]
+    ],
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "active": true,
+      "dialog": false,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEYzNEIyODk4QjE3RDJDRTYKUldUbUxIMnhtQ2hMODNtZkVuaW5LZVZUTmIrMTNPclB5L0RWaUpzWEN4SHB0YVY0VEthSitaRVkK",
+      "endpoints": [
+        "https://github.com/Dinispg10/GestaoFaturas/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installerArgs": [
+          "/passive"
+        ],
+        "installMode": "passive"
+      }
+    }
   }
 }

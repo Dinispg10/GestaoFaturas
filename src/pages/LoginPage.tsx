@@ -42,10 +42,10 @@ export const LoginPage: React.FC = () => {
       <div className="login-card">
         <div className="login-header">
           <div className="logo-placeholder">
-             <img src="/logo.png" alt="Farmácia Pinto" className="login-logo" />
+            <img src="/logo.png" alt="Farmácia Pinto" className="login-logo" />
           </div>
           <h1>Farmácia Pinto</h1>
-          <p>Registo de Faturas</p>
+          <p>Registo de Faturas v2</p>
         </div>
 
         <form onSubmit={handleSubmit}>
