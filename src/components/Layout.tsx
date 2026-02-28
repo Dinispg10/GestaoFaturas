@@ -44,10 +44,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           >
             Fornecedores
           </Link>
-          <UpdateChecker />
         </nav>
 
         <div className="header-right">
+          <UpdateChecker />
           <span className="user-info">
             {user?.name}
           </span>

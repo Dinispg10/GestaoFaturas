@@ -73,7 +73,7 @@ export default function UpdateChecker() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
       {status.kind === "idle" && (
-        <Button variant="secondary" size="md" onClick={handleCheck} title="Verificar Atualizações">
+        <Button variant="secondary" size="sm" onClick={handleCheck} title="Verificar Atualizações">
           🔄 Atualizações
         </Button>
       )}
@@ -93,7 +93,7 @@ export default function UpdateChecker() {
           <span className="update-msg update-new">
             🆕 Versão {status.version} disponível
           </span>
-          <Button variant="primary" size="md" onClick={handleInstall}>
+          <Button variant="primary" size="sm" onClick={handleInstall}>
             Instalar atualização
           </Button>
         </div>
@@ -114,7 +114,7 @@ export default function UpdateChecker() {
       {status.kind === "installed" && (
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <span className="update-msg update-ok">✅ Atualização instalada</span>
-          <Button variant="primary" size="md" onClick={handleRestart}>
+          <Button variant="primary" size="sm" onClick={handleRestart}>
             Fechar agora
           </Button>
           <span className="update-msg">e abrir novamente pelo Menu Iniciar</span>
