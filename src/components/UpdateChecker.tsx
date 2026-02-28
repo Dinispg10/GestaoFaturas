@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
+import { Button } from "./Button";
 
 
 
@@ -61,9 +62,9 @@ export default function UpdateChecker() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
       {status.kind === "idle" && (
-        <button className="update-btn" onClick={handleCheck} title="Verificar Atualizações">
-          🔄 Verificar Atualizações
-        </button>
+        <Button variant="secondary" size="md" onClick={handleCheck} title="Verificar Atualizações">
+          🔄 Atualizações
+        </Button>
       )}
 
       {status.kind === "checking" && (
@@ -81,9 +82,9 @@ export default function UpdateChecker() {
           <span className="update-msg update-new">
             🆕 Versão {status.version} disponível
           </span>
-          <button className="update-btn update-install" onClick={handleInstall}>
+          <Button variant="primary" size="md" onClick={handleInstall}>
             Instalar e reiniciar
-          </button>
+          </Button>
         </div>
       )}
 
