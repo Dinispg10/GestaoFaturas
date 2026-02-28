@@ -2,6 +2,7 @@ import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '../components/Button';
+import UpdateChecker from './UpdateChecker';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -43,6 +44,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           >
             Fornecedores
           </Link>
+          <UpdateChecker />
         </nav>
 
         <div className="header-right">

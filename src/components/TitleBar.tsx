@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import UpdateChecker from "./UpdateChecker";
 import "./TitleBar.css";
 
 type Props = {
@@ -58,9 +57,6 @@ export default function TitleBar({ title: _title }: Props) {
   return (
     <div className="titlebar-root">
       <div className="titlebar-drag" data-tauri-drag-region>
-        <div className="titlebar-update-area" data-tauri-drag-region={false}>
-          <UpdateChecker />
-        </div>
         <div className="titlebar-spacer" />
 
         <div className="titlebar-actions" data-tauri-drag-region={false}>
