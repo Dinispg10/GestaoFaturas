@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { check } from "@tauri-apps/plugin-updater";
-import { relaunch } from "@tauri-apps/plugin-process";
+import { exit } from "@tauri-apps/plugin-process";
 import { Button } from "./Button";
 
 
@@ -10,6 +10,7 @@ type UpdateStatus =
   | { kind: "checking" }
   | { kind: "upToDate" }
   | { kind: "available"; version: string; notes: string | null }
+  | { kind: "installed" }
   | { kind: "downloading"; percent: number }
   | { kind: "error"; message: string };
 
@@ -59,10 +60,14 @@ export default function UpdateChecker() {
         }
       });
 
-      await relaunch();
+      setStatus({ kind: "installed" });
     } catch (e) {
       setStatus({ kind: "error", message: String(e) });
     }
+  }
+
+  async function handleRestart() {
+    await exit(0);
   }
 
   return (
@@ -89,7 +94,7 @@ export default function UpdateChecker() {
             🆕 Versão {status.version} disponível
           </span>
           <Button variant="primary" size="md" onClick={handleInstall}>
-            Instalar e reiniciar
+            Instalar atualização
           </Button>
         </div>
       )}
@@ -103,6 +108,16 @@ export default function UpdateChecker() {
               style={{ width: `${status.percent}%` }}
             />
           </div>
+        </div>
+      )}
+
+      {status.kind === "installed" && (
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span className="update-msg update-ok">✅ Atualização instalada</span>
+          <Button variant="primary" size="md" onClick={handleRestart}>
+            Fechar agora
+          </Button>
+          <span className="update-msg">e abrir novamente pelo Menu Iniciar</span>
         </div>
       )}
 
