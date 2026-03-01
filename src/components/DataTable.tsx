@@ -7,6 +7,7 @@ interface DataTableProps<T> {
     label: string;
     render?: (value: unknown, row: T) => React.ReactNode;
     sortable?: boolean;
+    className?: string;
   }[];
   data: T[];
   onRowClick?: (row: T) => void;
@@ -49,7 +50,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps<any>>(
         <div className="data-table-scroll">
           <table className="data-table">
             <thead>
-            <tr>
+              <tr>
                 {columns.map((col) => {
                   const isSorted = sortBy === col.key;
 
@@ -70,7 +71,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps<any>>(
                   );
                 })}
               </tr>
-           </thead>
+            </thead>
             <tbody>
               {data.map((row, rowIndex) => (
                 <tr
@@ -79,7 +80,7 @@ export const DataTable = React.forwardRef<HTMLDivElement, DataTableProps<any>>(
                   className={onRowClick ? 'cursor-pointer hover:bg-gray-50' : ''}
                 >
                   {columns.map((col) => (
-                    <td key={String(col.key)}>
+                    <td key={String(col.key)} className={col.className}>
                       {col.render ? col.render(row[col.key], row) : String(row[col.key])}
                     </td>
                   ))}

@@ -17,7 +17,7 @@
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .data-table thead {
@@ -29,30 +29,32 @@
   padding: 13px 14px;
   text-align: left;
   font-weight: 700;
-  color: #4a3167;
+  color: #231b2e;
 }
 
 .data-table th.sortable-header {
-   cursor: pointer;
-   user-select: none;
- }
- 
- .data-table th.sortable-header span:first-child {
-   margin-right: 6px;
- }
- 
- .sort-indicator {
-   color: #8f7aa8;
-   font-size: 12px;
- }
- 
- .sort-indicator.active {
-   color: #5b2a86;
- }
+  cursor: pointer;
+  user-select: none;
+}
+
+.data-table th.sortable-header span:first-child {
+  margin-right: 6px;
+}
+
+.sort-indicator {
+  color: #8f7aa8;
+  font-size: 12px;
+}
+
+.sort-indicator.active {
+  color: #5b2a86;
+}
 
 .data-table td {
   padding: 12px 14px;
   border-bottom: 1px solid #f0edf7;
+  color: #000;
+  font-weight: 600;
 }
 
 .data-table tbody tr:hover {

@@ -60,7 +60,7 @@ export const InvoicesPage: React.FC = () => {
     }
   };
 
-   const isValidDateFilter = (value?: string) => Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
+  const isValidDateFilter = (value?: string) => Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
 
   const parseDateFilter = (value: string) => {
     const parsedDate = new Date(value);
@@ -71,7 +71,7 @@ export const InvoicesPage: React.FC = () => {
   const applyFilters = (newFilters: Record<string, string>) => {
     let result = invoices;
 
-     if (newFilters.supplierId) {
+    if (newFilters.supplierId) {
       result = result.filter((inv) => inv.supplierId === newFilters.supplierId);
     }
 
@@ -90,7 +90,7 @@ export const InvoicesPage: React.FC = () => {
         });
       }
     }
-if (isValidDateFilter(newFilters.dateTo)) {
+    if (isValidDateFilter(newFilters.dateTo)) {
       const toDate = parseDateFilter(newFilters.dateTo);
 
       if (toDate) {
@@ -196,7 +196,7 @@ if (isValidDateFilter(newFilters.dateTo)) {
     return value.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' });
   };
 
-   const getStatusLabel = (status: InvoiceStatus) => {
+  const getStatusLabel = (status: InvoiceStatus) => {
     const statusMap: Record<InvoiceStatus, string> = {
       submitted: 'Submetida para Pagamento',
       paid: 'Paga',
@@ -206,7 +206,7 @@ if (isValidDateFilter(newFilters.dateTo)) {
   };
 
   const handleExportPdf = () => {
-   if (sortedInvoices.length === 0) {
+    if (sortedInvoices.length === 0) {
       window.alert('Não há faturas para exportar com os filtros atuais.');
       return;
     }
@@ -235,11 +235,11 @@ if (isValidDateFilter(newFilters.dateTo)) {
       activeFilters.status
         ? `Estado: ${statusOptions.find((opt) => opt.value === activeFilters.status)?.label ?? 'N/A'}`
         : null,
-       isValidDateFilter(activeFilters.dateFrom) ? `Data inicial: ${formatDate(new Date(activeFilters.dateFrom as string))}` : null,
+      isValidDateFilter(activeFilters.dateFrom) ? `Data inicial: ${formatDate(new Date(activeFilters.dateFrom as string))}` : null,
       isValidDateFilter(activeFilters.dateTo) ? `Data final: ${formatDate(new Date(activeFilters.dateTo as string))}` : null,
       activeFilters.search ? `Pesquisa: ${activeFilters.search}` : null,
     ]
-       .filter(Boolean);
+      .filter(Boolean);
 
     const htmlContent = `
       <!doctype html>
@@ -449,8 +449,8 @@ if (isValidDateFilter(newFilters.dateTo)) {
           <div class="filters">
              <span class="filters-label">Filtros aplicados:</span>
             ${filtersSummary.length > 0
-              ? filtersSummary.map((filter) => `<span class="filter-tag">${filter}</span>`).join('')
-              : '<span class="filter-tag empty">Sem filtros</span>'}
+        ? filtersSummary.map((filter) => `<span class="filter-tag">${filter}</span>`).join('')
+        : '<span class="filter-tag empty">Sem filtros</span>'}
           </div>
 
           <div class="report-wrapper">
@@ -509,7 +509,7 @@ if (isValidDateFilter(newFilters.dateTo)) {
         printFrame.remove();
       }, 1000);
     };
-document.body.appendChild(printFrame);
+    document.body.appendChild(printFrame);
   };
 
 
@@ -518,6 +518,7 @@ document.body.appendChild(printFrame);
       key: 'supplierNameSnapshot' as const,
       sortable: true,
       label: 'Fornecedor',
+      className: 'col-supplier',
     },
     {
       key: 'invoiceNumber' as const,
@@ -534,13 +535,13 @@ document.body.appendChild(printFrame);
       key: 'dueDate' as const,
       sortable: true,
       label: 'Vencimento',
-      render: (value: unknown) => {
+      render: (value: unknown, row: Invoice) => {
         const dueDate = new Date(value as Date);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         dueDate.setHours(0, 0, 0, 0);
-        
-        if (dueDate < today) {
+
+        if (dueDate < today && row.status !== 'paid') {
           return <span style={{ color: '#d32f2f', fontWeight: 600 }}>
             {formatDate(value as Date)} (Vencida)
           </span>;
@@ -553,6 +554,7 @@ document.body.appendChild(printFrame);
       sortable: true,
       label: 'Total',
       render: (value: unknown) => formatCurrency(value as number),
+      className: 'col-amount',
     },
     {
       key: 'status' as const,

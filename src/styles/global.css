@@ -34,6 +34,7 @@ body,
 #root {
   height: 100%;
   width: 100%;
+  overflow: hidden;
 }
 
 #root {
@@ -60,7 +61,7 @@ body,
 
 .btn-primary:hover {
   background-color: #dfd6ef;
-  color:#4a3f83;
+  color: #4a3f83;
 }
 
 .btn-secondary {
@@ -70,7 +71,7 @@ body,
 
 .btn-secondary:hover {
   background-color: #dfd6ef;
-  color:#4a3f83
+  color: #4a3f83
 }
 
 .btn-danger {
@@ -110,15 +111,16 @@ body,
   opacity: 0.7;
 }
 
-.btn-export{
+.btn-export {
   background-color: #dfd6ef;
   color: #4a3f83;
 }
 
-.btn-export:hover{
+.btn-export:hover {
   background-color: #4a3f83;
   color: white;
 }
+
 /* Forms */
 .form-group {
   margin-bottom: 16px;
@@ -248,6 +250,7 @@ body,
     grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
+
 /* Modal */
 .modal-overlay {
   position: fixed;
@@ -365,7 +368,8 @@ body,
 .page-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 .page-header {
