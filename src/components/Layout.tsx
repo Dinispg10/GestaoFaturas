@@ -51,7 +51,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           <span className="user-info">
             {user?.name}
           </span>
-          <Button variant="secondary" size="sm" onClick={handleLogout}>
+          <Button variant="secondary" size="md" onClick={handleLogout}>
             Sair
           </Button>
         </div>
