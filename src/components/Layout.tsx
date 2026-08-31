@@ -33,6 +33,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         <nav className="header-nav">
           <Link
+            to="/dashboard"
+            className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}
+          >
+            Dashboard
+          </Link>
+          <Link
             to="/faturas"
             className={`nav-link ${isActive('/faturas') ? 'active' : ''}`}
           >

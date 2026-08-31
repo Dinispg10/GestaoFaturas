@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from '../pages/LoginPage';
+import { DashboardPage } from '../pages/DashboardPage';
 import { InvoicesPage } from '../pages/InvoicesPage';
 import { InvoiceFormPage } from '../pages/InvoiceFormPage';
 import { InvoiceDetailPage } from '../pages/InvoiceDetailPage';
@@ -47,7 +48,18 @@ export const Router: React.FC = () => {
         element={
           <RequireAuth>
             <Layout>
-              <Navigate to="/faturas" replace />
+              <Navigate to="/dashboard" replace />
+            </Layout>
+          </RequireAuth>
+        }
+      />
+
+      <Route
+        path="/dashboard"
+        element={
+          <RequireAuth>
+            <Layout>
+              <DashboardPage />
             </Layout>
           </RequireAuth>
         }

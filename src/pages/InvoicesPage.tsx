@@ -5,6 +5,8 @@ import { Invoice, InvoiceStatus } from '../types';
 import { DataTable } from '../components/DataTable';
 import { FilterBar } from '../components/FilterBar';
 import { Button } from '../components/Button';
+import { StatusBadge } from '../components/StatusBadge';
+import { PAYMENT_METHODS } from '../utils/paymentMethods';
 
 export const InvoicesPage: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -32,9 +34,24 @@ export const InvoicesPage: React.FC = () => {
       .sort((a, b) => a.label.localeCompare(b.label, 'pt-PT'));
   }, [invoices]);
 
+  const paymentMethodOptions = useMemo(() => {
+    const methods = new Set<string>(PAYMENT_METHODS);
+
+    invoices.forEach((invoice) => {
+      if (invoice.payment?.method) {
+        methods.add(invoice.payment.method);
+      }
+    });
+
+    return Array.from(methods)
+      .sort((a, b) => a.localeCompare(b, 'pt-PT'))
+      .map((method) => ({ value: method, label: method }));
+  }, [invoices]);
+
   const filterConfig = [
     { key: 'supplierId', label: 'Fornecedor', type: 'select' as const, options: supplierOptions },
     { key: 'status', label: 'Estado', type: 'select' as const, options: statusOptions },
+    { key: 'paymentMethod', label: 'Método de pagamento', type: 'select' as const, options: paymentMethodOptions },
     { key: 'dateFrom', label: 'Data inicial', type: 'date' as const },
     { key: 'dateTo', label: 'Data final', type: 'date' as const },
     { key: 'search', label: 'Pesquisar', type: 'text' as const, placeholder: 'Nº Fatura' },
@@ -46,17 +63,14 @@ export const InvoicesPage: React.FC = () => {
 
   const loadInvoices = async () => {
     try {
-      console.log('[InvoicesPage] Starting loadInvoices...');
       setLoading(true);
       const data = await invoiceService.getAllInvoices();
-      console.log('[InvoicesPage] Got invoices:', data.length);
       setInvoices(data);
       setFilteredInvoices(data);
     } catch (error) {
       console.error('[InvoicesPage] Error loading invoices:', error);
     } finally {
       setLoading(false);
-      console.log('[InvoicesPage] setLoading(false)');
     }
   };
 
@@ -77,6 +91,10 @@ export const InvoicesPage: React.FC = () => {
 
     if (newFilters.status) {
       result = result.filter((inv) => inv.status === newFilters.status);
+    }
+
+    if (newFilters.paymentMethod) {
+      result = result.filter((inv) => inv.payment?.method === newFilters.paymentMethod);
     }
 
     if (isValidDateFilter(newFilters.dateFrom)) {
@@ -114,6 +132,16 @@ export const InvoicesPage: React.FC = () => {
     setActiveFilters(newFilters);
     setFilteredInvoices(result);
   };
+
+  const tableSummary = useMemo(() => {
+    const pending = filteredInvoices.filter((i) => i.status === 'submitted');
+    const paid = filteredInvoices.filter((i) => i.status === 'paid');
+    return {
+      count: filteredInvoices.length,
+      pendingAmount: pending.reduce((s, i) => s + i.totalAmount, 0),
+      paidAmount: paid.reduce((s, i) => s + i.totalAmount, 0),
+    };
+  }, [filteredInvoices]);
 
   const sortedInvoices = useMemo(() => {
     if (!sortBy) {
@@ -174,18 +202,6 @@ export const InvoicesPage: React.FC = () => {
     setSortDirection('asc');
   };
 
-  const getStatusBadge = (status: InvoiceStatus) => {
-    const statusMap: Record<InvoiceStatus, string> = {
-      submitted: 'Submetida para Pagamento',
-      paid: 'Paga',
-    };
-
-    return (
-      <span className={`badge badge-${status}`}>
-        {statusMap[status]}
-      </span>
-    );
-  };
 
   const formatDate = (date?: Date) => {
     if (!date) return '—';
@@ -235,6 +251,7 @@ export const InvoicesPage: React.FC = () => {
       activeFilters.status
         ? `Estado: ${statusOptions.find((opt) => opt.value === activeFilters.status)?.label ?? 'N/A'}`
         : null,
+      activeFilters.paymentMethod ? `Método de pagamento: ${activeFilters.paymentMethod}` : null,
       isValidDateFilter(activeFilters.dateFrom) ? `Data inicial: ${formatDate(new Date(activeFilters.dateFrom as string))}` : null,
       isValidDateFilter(activeFilters.dateTo) ? `Data final: ${formatDate(new Date(activeFilters.dateTo as string))}` : null,
       activeFilters.search ? `Pesquisa: ${activeFilters.search}` : null,
@@ -340,12 +357,12 @@ export const InvoicesPage: React.FC = () => {
 
             @page {
               size: A4 landscape;
-              margin: 10mm;
+              margin: 0;
             }
 
             @media print {
               body {
-                 margin: 0;
+                padding: 10mm;
               }
 
               .report-wrapper {
@@ -439,6 +456,42 @@ export const InvoicesPage: React.FC = () => {
               font-size: 12px;
               margin: 0;
             }
+
+            .summary-bar {
+              display: flex;
+              margin-top: 1px;
+              border: 1px solid #ddd8e8;
+              border-top: none;
+              border-radius: 0 0 10px 10px;
+              overflow: hidden;
+              background: #f6f1ff;
+            }
+
+            .summary-cell {
+              flex: 1;
+              padding: 10px 12px;
+              display: flex;
+              flex-direction: column;
+              gap: 2px;
+            }
+
+            .summary-cell + .summary-cell {
+              border-left: 1px solid #ddd8e8;
+            }
+
+            .summary-label {
+              font-size: 10px;
+              font-weight: 700;
+              color: #4a3167;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+
+            .summary-value {
+              font-size: 13px;
+              font-weight: 700;
+              color: #231b2e;
+            }
           </style>
         </head>
         <body>
@@ -472,6 +525,20 @@ export const InvoicesPage: React.FC = () => {
                   ${tableRows}
                 </tbody>
               </table>
+            </div>
+          </div>
+          <div class="summary-bar">
+            <div class="summary-cell summary-total">
+              <span class="summary-label">Total</span>
+              <span class="summary-value">${tableSummary.count} ${tableSummary.count === 1 ? 'fatura' : 'faturas'}</span>
+            </div>
+            <div class="summary-cell summary-submitted">
+              <span class="summary-label">Submetidas</span>
+              <span class="summary-value">${tableSummary.pendingAmount.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</span>
+            </div>
+            <div class="summary-cell summary-paid">
+              <span class="summary-label">Pagas</span>
+              <span class="summary-value">${tableSummary.paidAmount.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</span>
             </div>
           </div>
         </body>
@@ -560,7 +627,7 @@ export const InvoicesPage: React.FC = () => {
       key: 'status' as const,
       sortable: true,
       label: 'Estado',
-      render: (value: unknown) => getStatusBadge(value as InvoiceStatus),
+      render: (value: unknown) => <StatusBadge status={value as InvoiceStatus} />,
     },
     {
       key: 'createdBy' as const,

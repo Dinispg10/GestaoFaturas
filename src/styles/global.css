@@ -207,48 +207,50 @@ body,
 /* Filter Bar */
 .filter-bar {
   background: #dfd6ef;
-  padding: 16px;
+  padding: 12px 14px;
   border-radius: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   border: 1px solid var(--color-border);
 }
 
 .filter-controls {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
   align-items: flex-end;
 }
 
 .filter-item {
   display: flex;
   flex-direction: column;
+  flex: 1 1 140px;
+  min-width: 0;
 }
 
 .filter-item label {
   font-weight: 500;
-  margin-bottom: 6px;
-  font-size: 14px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: #4a3f83;
 }
 
 .filter-item input,
 .filter-item select {
-  padding: 8px;
+  padding: 6px 8px;
   border: 1px solid var(--color-border);
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px;
+  min-width: 0;
+  width: 100%;
 }
 
 .filter-clear-btn {
   background-color: #4a3f83;
   color: #ffffff;
   white-space: nowrap;
-}
-
-@media (min-width: 1200px) {
-  .filter-controls {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
+  flex: 0 0 auto;
+  padding: 7px 14px;
+  font-size: 13px;
 }
 
 /* Modal */
@@ -463,8 +465,8 @@ body,
 /* Status Badges */
 .badge {
   display: inline-block;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
 }

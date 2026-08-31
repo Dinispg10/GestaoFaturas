@@ -4,9 +4,17 @@ import { Supplier } from '../types';
 import { Button } from '../components/Button';
 import { DataTable } from '../components/DataTable';
 import { Modal } from '../components/Modal';
+import { supabase } from '../lib/supabase';
+
+interface SupplierStats {
+  count: number;
+  total: number;
+  pending: number;
+}
 
 export const SuppliersPage: React.FC = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [stats, setStats] = useState<Record<string, SupplierStats>>({});
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -22,16 +30,26 @@ export const SuppliersPage: React.FC = () => {
 
   const loadSuppliers = async () => {
     try {
-      console.log('[SuppliersPage] Starting loadSuppliers...');
       setLoading(true);
-      const data = await supplierService.getAllSuppliers();
-      console.log('[SuppliersPage] Got suppliers:', data.length);
+      const [data, invoicesRes] = await Promise.all([
+        supplierService.getAllSuppliers(),
+        supabase.from('invoices').select('supplier_id, total_amount, status'),
+      ]);
       setSuppliers(data);
+
+      const map: Record<string, SupplierStats> = {};
+      for (const row of invoicesRes.data ?? []) {
+        const s = map[row.supplier_id] ?? { count: 0, total: 0, pending: 0 };
+        s.count += 1;
+        s.total += row.total_amount || 0;
+        if (row.status === 'submitted') s.pending += row.total_amount || 0;
+        map[row.supplier_id] = s;
+      }
+      setStats(map);
     } catch (error) {
       console.error('[SuppliersPage] Error loading suppliers:', error);
     } finally {
       setLoading(false);
-      console.log('[SuppliersPage] setLoading(false)');
     }
   };
 
@@ -94,16 +112,52 @@ export const SuppliersPage: React.FC = () => {
     }
   };
 
+  const fmt = (n: number) =>
+    n.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' });
+
   const columns = [
     { key: 'name' as const, label: 'Nome' },
     {
       key: 'active' as const,
       label: 'Estado',
       render: (value: unknown) => (
-         <span className={`badge ${value ? 'badge-approved' : 'badge-inactive'}`}>
+        <span className={`badge ${value ? 'badge-approved' : 'badge-inactive'}`}>
           {value ? 'Ativo' : 'Inativo'}
         </span>
       ),
+    },
+    {
+      key: 'id' as const,
+      label: 'Faturas',
+      render: (_: unknown, row: Supplier) => {
+        const s = stats[row.id];
+        return (
+          <span style={{ fontWeight: 600, color: '#4a3f83' }}>
+            {s ? s.count : '—'}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'id' as const,
+      label: 'Total Faturado',
+      render: (_: unknown, row: Supplier) => {
+        const s = stats[row.id];
+        return s ? fmt(s.total) : '—';
+      },
+    },
+    {
+      key: 'id' as const,
+      label: 'Pendente',
+      render: (_: unknown, row: Supplier) => {
+        const s = stats[row.id];
+        if (!s) return '—';
+        return s.pending > 0 ? (
+          <span style={{ fontWeight: 600, color: '#f57c00' }}>{fmt(s.pending)}</span>
+        ) : (
+          <span style={{ color: '#2d9f6d', fontWeight: 600 }}>0,00€</span>
+        );
+      },
     },
   ];
 

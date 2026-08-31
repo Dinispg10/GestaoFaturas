@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { invoiceService } from '../features/invoices/invoiceService';
 import { supplierService } from '../features/suppliers/supplierService';
-import { Invoice, InvoiceEvent, InvoiceStatus } from '../types';
+import { Invoice, InvoiceEvent } from '../types';
 import { Button } from '../components/Button';
 import { Modal } from '../components/Modal';
+import { StatusBadge } from '../components/StatusBadge';
 import { supabaseUploadService } from '../utils/supabaseUploadService';
 import { useAuthUser } from '../hooks/useUser';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { formatDateOnlyForDisplay } from '../utils/dateUtils';
+import { PAYMENT_METHODS } from '../utils/paymentMethods';
 
 export const InvoiceDetailPage: React.FC = () => {
   const { id } = useParams();
@@ -30,23 +32,19 @@ export const InvoiceDetailPage: React.FC = () => {
     if (!id) return;
 
     try {
-      console.log('[InvoiceDetailPage] Loading invoice:', id);
       setLoading(true);
       const invoiceData = await invoiceService.getInvoice(id);
-      console.log('[InvoiceDetailPage] Got invoice:', !!invoiceData);
       if (invoiceData) {
         setInvoice(invoiceData);
         await supplierService.getSupplier(invoiceData.supplierId);
       }
 
       const eventsData = await invoiceService.getInvoiceEvents(id);
-      console.log('[InvoiceDetailPage] Got events:', eventsData.length);
       setEvents(eventsData);
     } catch (error) {
       console.error('[InvoiceDetailPage] Error loading:', error);
     } finally {
       setLoading(false);
-      console.log('[InvoiceDetailPage] setLoading(false)');
     }
   };
 
@@ -99,10 +97,6 @@ export const InvoiceDetailPage: React.FC = () => {
 
    const canMarkAsPaid = invoice?.status === 'submitted';
 
-  const statusMap: Record<InvoiceStatus, string> = {
-    submitted: 'Submetida para Pagamento',
-    paid: 'Paga',
-  };
 
   const eventTypeMap: Record<string, string> = {
     CREATED: 'Criada',
@@ -144,7 +138,7 @@ export const InvoiceDetailPage: React.FC = () => {
           <h3>Informações da Fatura</h3>
           <div className="detail-row">
             <span className="label">Estado:</span>
-            <span className={`badge badge-${invoice.status}`}>{statusMap[invoice.status]}</span>
+            <StatusBadge status={invoice.status} />
           </div>
           <div className="detail-row">
             <span className="label">Fornecedor:</span>
@@ -272,11 +266,11 @@ export const InvoiceDetailPage: React.FC = () => {
             onChange={(e) => setPaymentMethod(e.target.value)}
           >
             <option value="">Selecionar</option>
-            <option value="Transferência Bancária">Transferência Bancária</option>
-            <option value="Cheque">Cheque</option>
-            <option value="Dinheiro">Dinheiro</option>
-            <option value="Cartão">Cartão</option>
-            <option value="Outro">Outro</option>
+            {PAYMENT_METHODS.map((method) => (
+              <option key={method} value={method}>
+                {method}
+              </option>
+            ))}
           </select>
         </div>
        <p className="text-muted">
@@ -353,33 +347,6 @@ export const InvoiceDetailPage: React.FC = () => {
           color: #000000;
         }
 
-        .badge {
-          display: inline-block;
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-size: 12px;
-          font-weight: 600;
-        }
-
-        .badge-submitted {
-          background-color: #f8d7da;
-          color: #721c24;
-        }
-
-        .badge-approved {
-          background-color: #d4edda;
-          color: #155724;
-        }
-
-        .badge-rejected {
-          background-color: #f8d7da;
-          color: #721c24;
-        }
-
-        .badge-paid {
-          background-color: #d4edda;
-          color: #155724;
-        }
 
         .attachment-section {
           display: flex;
